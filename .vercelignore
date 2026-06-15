@@ -1,0 +1,10 @@
+node_modules
+dist
+.tanstack
+.vinxi
+.nitro
+.claude
+*.log
+
+# Runtime uses compressed .spz splats; raw captures are local-only.
+public/**/*.ply
