@@ -260,63 +260,104 @@ const PointerNeo = {
   varying vec2 vUv;
   float lum(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }
   float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-  vec3 neonPal(float p){
-    return 0.56 + 0.44 * cos(6.28318 * (p + vec3(0.52, 0.86, 0.12)));
+  float noise(vec2 p){
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
   }
   void main(){
     vec2 aspect = vec2(res.x / max(res.y, 1.0), 1.0);
     vec2 delta = (vUv - mouse) * aspect;
-    float d = length(delta);
-    float local = (1.0 - smoothstep(0.0, radius, d)) * hover;
     vec2 px = 1.0 / res;
 
-    vec2 cell = floor((vUv - mouse) * res / 12.0);
-    float h = hash(cell);
-    float build = 0.5 + 0.5 * sin(time * 3.2 + h * 6.28318);
-    float destruct = 0.5 + 0.5 * sin(time * 2.45 + h * 9.1 + d * 34.0);
-    vec2 shard = (vec2(hash(cell + 4.1), hash(cell + 9.7)) - 0.5) * px * 34.0;
+    vec3 base = texture2D(tDiffuse, vUv).rgb;
+    float baseLum = lum(base);
+    float lx1 = lum(texture2D(tDiffuse, vUv + vec2(px.x * 2.0, 0.0)).rgb);
+    float lx0 = lum(texture2D(tDiffuse, vUv - vec2(px.x * 2.0, 0.0)).rgb);
+    float ly1 = lum(texture2D(tDiffuse, vUv + vec2(0.0, px.y * 2.0)).rgb);
+    float ly0 = lum(texture2D(tDiffuse, vUv - vec2(0.0, px.y * 2.0)).rgb);
+    vec2 grad = vec2(lx1 - lx0, ly1 - ly0);
+    float edge = smoothstep(0.018, 0.16, length(grad));
+    float surface = clamp(edge * 1.25 + smoothstep(0.14, 0.72, baseLum) * 0.45, 0.0, 1.0);
+
     vec2 dir = normalize(delta + vec2(0.0001));
-    vec2 radial = dir / aspect * (0.011 * amount * local * destruct);
-    vec2 sampleUv = vUv + shard * local * (build - 0.5) + radial;
+    vec2 tangent = normalize(vec2(-grad.y, grad.x) + dir * 0.22 + vec2(0.0001));
+    vec2 normal = normalize(grad + dir * 0.14 + vec2(0.0001));
+
+    vec2 tile8 = floor(vUv * res / 8.0);
+    vec2 tile18 = floor(vUv * res / 18.0);
+    float h8 = hash(tile8);
+    float h18 = hash(tile18);
+    float field = noise(vUv * vec2(10.0, 5.5) + vec2(time * 0.10, -time * 0.035));
+    float alongSurface = abs(dot(delta, tangent));
+    float acrossSurface = abs(dot(delta, normal));
+    float sceneGrain = noise(vUv * res * 0.055 + vec2(time * 0.18, -time * 0.11));
+    float sceneGate = smoothstep(
+      0.24,
+      0.88,
+      edge * 0.95 + surface * 0.44 + abs(baseLum - 0.5) * 0.16 + sceneGrain * 0.32
+    );
+    float surfaceReach = smoothstep(
+      1.0,
+      0.0,
+      alongSurface / max(radius * 1.18, 0.001) + acrossSurface / max(radius * 0.36, 0.001)
+    );
+    float coreReach = smoothstep(
+      1.0,
+      0.0,
+      alongSurface / max(radius * 0.66, 0.001) + acrossSurface / max(radius * 0.22, 0.001)
+    );
+    float broken = smoothstep(0.18, 0.92, h18 + field * 0.55);
+    float plates = smoothstep(0.35, 0.95, h8 + sin(time * 1.25 + h18 * 6.28318) * 0.16);
+    float fracture = smoothstep(0.34, 0.9, h18 * 0.42 + field * 0.34 + edge * 0.7);
+    float corridor = coreReach * fracture * sceneGate;
+    float wake = max(surfaceReach - coreReach, 0.0) * sceneGate * broken * 0.18;
+    float local = hover * (wake + corridor) * (0.22 + surface * 1.12);
+
+    vec2 blockJitter = (vec2(hash(tile8 + 4.1), hash(tile8 + 9.7)) - 0.5) * px * 16.0;
+    float shimmer = 0.5 + 0.5 * sin(time * 2.1 + h18 * 11.0 + baseLum * 7.0);
+    vec2 flow = tangent * (0.034 * amount * local * (0.42 + shimmer))
+      + normal * (0.018 * amount * local * (plates - 0.5))
+      + blockJitter * local * plates * 1.55;
+    vec2 sampleUv = vUv + flow;
 
     vec4 c = texture2D(tDiffuse, sampleUv);
     float l = lum(c.rgb);
-    float ex = abs(l - lum(texture2D(tDiffuse, sampleUv + vec2(px.x * 2.0, 0.0)).rgb));
-    float ey = abs(l - lum(texture2D(tDiffuse, sampleUv + vec2(0.0, px.y * 2.0)).rgb));
-    float edge = smoothstep(0.025, 0.22, ex + ey);
+    float detail = smoothstep(0.025, 0.2, abs(l - baseLum) + edge * 0.55);
 
-    float angle = atan(delta.y, delta.x);
-    float pulse = 0.5 + 0.5 * sin(angle * 7.0 - d * 42.0 + time * 1.65);
-    float ring = (1.0 - smoothstep(radius * 0.58, radius * 0.96, d)) *
-      smoothstep(radius * 0.20, radius * 0.52, d);
-    vec3 neon = neonPal(time * 0.055 + angle * 0.08 + pulse * 0.08);
+    vec2 split = (tangent + normal * 0.42) * (0.006 * amount * local + 0.0025 * surface * local);
+    float splitLumA = lum(texture2D(tDiffuse, sampleUv - split).rgb);
+    float splitLumB = lum(texture2D(tDiffuse, sampleUv + split).rgb);
+    float warpedLum = mix(l, (splitLumA + splitLumB) * 0.5, local * 0.58);
 
-    vec2 split = dir / aspect * (0.006 * amount * local + 0.004 * local * destruct);
-    vec3 chroma = vec3(
-      texture2D(tDiffuse, sampleUv - split).r,
-      c.g,
-      texture2D(tDiffuse, sampleUv + split).b
-    );
-
-    vec2 gridUv = fract((vUv - mouse) * res / 12.0);
+    vec2 gridUv = fract(vUv * res / 8.0);
     float gridLine = max(
-      1.0 - smoothstep(0.0, 0.12, min(gridUv.x, 1.0 - gridUv.x)),
-      1.0 - smoothstep(0.0, 0.12, min(gridUv.y, 1.0 - gridUv.y))
+      1.0 - smoothstep(0.0, 0.1, min(gridUv.x, 1.0 - gridUv.x)),
+      1.0 - smoothstep(0.0, 0.1, min(gridUv.y, 1.0 - gridUv.y))
     );
-    float assemble = smoothstep(0.2, 0.95, build) *
-      (1.0 - smoothstep(radius * 0.12, radius, d));
-    float dissolve = step(0.78, destruct) * h * local;
+    float mosaic = plates * broken * local;
+    float dissolve = step(0.78, shimmer) * h8 * mosaic;
 
-    vec3 outc = mix(c.rgb, chroma, local * 0.55);
-    outc += neon * edge * local * amount * (1.9 + pulse * 0.55);
-    outc += neon * ring * local * amount * (0.28 + destruct * 0.28);
-    outc += neon * gridLine * local * amount * assemble * 0.28;
-    outc += neon * dissolve * amount * 0.22;
-    outc += neon * smoothstep(0.62, 1.0, l) * local * amount * 0.34;
-    outc = mix(outc, outc * vec3(0.78, 0.88, 1.12) + neon * 0.14, local * 0.2);
+    vec2 ditherTile = floor(vUv * res / 4.0);
+    float ditherNoise = hash(ditherTile + floor(time * 8.0) * 0.17);
+    float ordered = fract(ditherTile.x * 0.375 + ditherTile.y * 0.625 + ditherNoise * 0.42);
+    float bwStep = step(ordered, clamp(warpedLum + detail * 0.16 - gridLine * 0.05, 0.0, 1.0));
+    vec3 bwSoft = vec3(smoothstep(0.02, 0.98, warpedLum));
+    vec3 bwHard = vec3(bwStep);
+    vec3 bw = mix(bwSoft, bwHard, clamp(mosaic * 1.25 + local * 0.42, 0.0, 1.0));
+    bw *= 1.0 - gridLine * mosaic * 0.24;
+    bw = mix(bw, vec3(0.0), dissolve * 0.28);
+    bw += vec3(detail) * local * amount * 0.16;
 
     vec3 original = texture2D(tDiffuse, vUv).rgb;
-    outc = mix(outc, original * (0.55 + neon * 0.55), dissolve * 0.22);
+    vec3 originalBw = vec3(lum(original));
+    vec3 outc = mix(original, originalBw, clamp(local * 0.72, 0.0, 0.92));
+    outc = mix(outc, bw, clamp(local + mosaic * 0.55, 0.0, 0.96));
 
     gl_FragColor = vec4(outc, c.a);
   }`,
@@ -523,7 +564,7 @@ export function applyPreset(byKey: Record<string, FxPass>, preset: SplatPreset) 
 
   byKey.neo.enabled = true;
   byKey.neo.uniforms.amount.value = 0.9;
-  byKey.neo.uniforms.radius.value = 0.34;
+  byKey.neo.uniforms.radius.value = 0.18;
 }
 
 // ===========================================================================

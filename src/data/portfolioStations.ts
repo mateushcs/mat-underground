@@ -2,7 +2,7 @@ import type { SplatPreset } from "@/lib/splatFx";
 
 // Technical / map config for each station. The user-facing TEXT lives in
 // `portfolioContent.ts` (editable) — this file only holds the line id, accent,
-// splat (.spz) and tuned camera/effects preset.
+// splat (.sog) and tuned camera/effects preset.
 export interface PortfolioStation {
   /** URL slug: /station/<slug> */
   slug: string;
@@ -14,7 +14,7 @@ export interface PortfolioStation {
   active?: boolean;
   /** true = clicking opens the contact form instead of navigating */
   contact?: boolean;
-  /** this station's splat in /public (.spz; fallback: /subway.spz) */
+  /** this station's splat in /public (.sog; fallback: /subway.sog) */
   ply?: string;
   /**
    * Full camera + effects preset, tuned in /station/<slug>?tune=1 (COPIAR PRESET).
@@ -33,7 +33,7 @@ export const portfolioStations: PortfolioStation[] = [
     slug: "uptime-center",
     lineId: "L2",
     accent: "#7f9f82",
-    ply: "/stations/pexels-jakubzerdzicki-17904822.spz",
+    ply: "/stations/pexels-jakubzerdzicki-17904822.sog",
     preset: {
       camera: {
         radiusScale: 1,
@@ -52,7 +52,7 @@ export const portfolioStations: PortfolioStation[] = [
     slug: "solv",
     lineId: "L3",
     accent: "#7588b0",
-    ply: "/stations/pexels-lilartsy-2748059.spz",
+    ply: "/stations/pexels-lilartsy-2748059.sog",
     preset: {
       camera: {
         radiusScale: 0.68,
@@ -71,7 +71,7 @@ export const portfolioStations: PortfolioStation[] = [
     slug: "terapio",
     lineId: "L4",
     accent: "#8aa765",
-    ply: "/stations/pexels-sarisecils-7635515.spz",
+    ply: "/stations/pexels-sarisecils-7635515.sog",
     preset: {
       camera: {
         radiusScale: 0.41,
@@ -90,7 +90,7 @@ export const portfolioStations: PortfolioStation[] = [
     slug: "musicas",
     lineId: "L5",
     accent: "#6e9ead",
-    ply: "/stations/pexels-theshuttervision-9660905.spz",
+    ply: "/stations/pexels-theshuttervision-9660905.sog",
     preset: {
       camera: {
         radiusScale: 1,
@@ -116,7 +116,7 @@ export const portfolioStations: PortfolioStation[] = [
     slug: "recomendacoes",
     lineId: "L6",
     accent: "#b7839c",
-    ply: "/stations/pexels-xayriddin-37431887.spz",
+    ply: "/stations/pexels-xayriddin-37431887.sog",
     preset: {
       camera: {
         radiusScale: 0.68,
@@ -142,7 +142,7 @@ export const portfolioStations: PortfolioStation[] = [
     slug: "creditos",
     lineId: "L7",
     accent: "#ba8c5c",
-    ply: "/stations/pexels-94973479-9272340.spz",
+    ply: "/stations/pexels-94973479-9272340.sog",
     preset: {
       camera: {
         radiusScale: 0.2,
@@ -163,7 +163,7 @@ export const portfolioStations: PortfolioStation[] = [
     accent: "#8a78a8",
     active: false,
     contact: true,
-    ply: "/stations/pexels-aditya-moses-1360843-2632308.spz",
+    ply: "/stations/pexels-aditya-moses-1360843-2632308.sog",
   },
 ];
 
@@ -193,7 +193,7 @@ export function stationSlugForLine(lineId: string): string | null {
 export function splatUrlForLine(lineId: string): string | null {
   const slug = slugByLineId[lineId];
   if (!slug) return null;
-  return portfolioStationBySlug[slug]?.ply ?? "/subway.spz";
+  return portfolioStationBySlug[slug]?.ply ?? "/subway.sog";
 }
 
 /** A linha de contato (terminal "Ative sua linha"): clicar abre o formulário. */

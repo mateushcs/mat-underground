@@ -1,9 +1,16 @@
 import { portfolioStations } from "@/data/portfolioStations";
 
-/** Unique .ply URLs across every station (deduped; includes the fallback). */
+export function runtimeSplatUrl(url: string): string {
+  return url;
+}
+
+/** Unique splat URLs across every navigable station (deduped; includes the fallback). */
 export function splatUrls(): string[] {
   const urls = new Set<string>();
-  for (const station of portfolioStations) urls.add(station.ply ?? "/subway.spz");
+  for (const station of portfolioStations) {
+    if (station.active === false) continue;
+    urls.add(runtimeSplatUrl(station.ply ?? "/subway.sog"));
+  }
   return [...urls];
 }
 
@@ -15,6 +22,7 @@ const warmed = new Set<string>();
  * is warm by the time they click and the station's first frame lands sooner.
  */
 export function warmSplat(url: string) {
+  url = runtimeSplatUrl(url);
   if (typeof window === "undefined" || warmed.has(url)) return;
   warmed.add(url);
   void (async () => {
@@ -82,7 +90,7 @@ let started = false;
 
 /**
  * Warm the HTTP cache with every station splat, strictly one at a time, in the
- * background. Each file is ~66MB, so running them in parallel would saturate the
+ * background. Even with compact SOG files, running them in parallel would saturate the
  * connection and starve an actual station navigation. We fetch at low priority
  * and stream-and-discard the body (so the response is cached without holding
  * 66MB in JS), only starting the next file once the current one finishes — and
@@ -115,7 +123,7 @@ export function prefetchSplatsIdle() {
       const reader = res.body?.getReader();
       if (!reader) return;
       // Read to completion so the response lands in the disk cache, discarding
-      // each chunk immediately instead of buffering the whole 66MB.
+      // each chunk immediately instead of buffering the whole splat.
       for (;;) {
         const { done } = await reader.read();
         if (done) break;

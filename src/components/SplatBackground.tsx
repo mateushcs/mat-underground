@@ -47,7 +47,7 @@ interface SplatBackgroundProps {
 }
 
 export function SplatBackground({
-  url = "/subway.spz",
+  url = "/subway.sog",
   preset = DEFAULT_PRESET,
   interactive = true,
   controllerRef,

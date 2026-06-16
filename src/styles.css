@@ -7440,7 +7440,9 @@ body {
 /* Readability pass: keep the glass mood, but make text panels legible. */
 .station-glass-panel {
   color: rgba(255, 255, 255, 0.94);
-  background: linear-gradient(180deg, rgba(7, 8, 10, 0.96), rgba(7, 8, 10, 0.985)) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.2) brightness(1.05);
+  backdrop-filter: blur(22px) saturate(1.2) brightness(1.05);
+  background: linear-gradient(180deg, rgba(7, 8, 10, 0.85), rgba(7, 8, 10, 0.85)) !important;
   border-top-color: rgba(255, 255, 255, 0.24);
   box-shadow:
     0 26px 76px rgba(0, 0, 0, 0.72),
@@ -7484,7 +7486,7 @@ body {
 @media (max-width: 768px) {
   .station-glass-panel,
   .contact-panel {
-    background: rgba(7, 8, 10, 0.975) !important;
+    background: rgba(7, 8, 10, 0.85) !important;
   }
 }
 

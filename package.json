@@ -5,12 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "vite build && node scripts/prune-build-assets.mjs",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "validate:map": "node scripts/validate-map-rules.mjs"
+    "validate:map": "node scripts/validate-map-rules.mjs",
+    "compress:splats": "powershell -ExecutionPolicy Bypass -File scripts/compress-sog-splats.ps1",
+    "compress:splats:sog": "powershell -ExecutionPolicy Bypass -File scripts/compress-sog-splats.ps1",
+    "compress:splats:spz": "node scripts/compress-mobile-splats.mjs",
+    "compress:splats:mobile": "node scripts/compress-mobile-splats.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

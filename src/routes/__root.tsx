@@ -7,11 +7,14 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { RouteTransitionProvider } from "@/components/RouteTransition";
-import { SplatStage } from "@/components/SplatStage";
+
+const SplatStage = lazy(() =>
+  import("@/components/SplatStage").then((module) => ({ default: module.SplatStage })),
+);
 
 function NotFoundComponent() {
   return (
@@ -125,7 +128,9 @@ function RootComponent() {
       <RouteTransitionProvider>
         {/* Persistent 3D layer: every station's splat preloaded on the GPU, so a
             station's scene is already live the instant the route doors open. */}
-        <SplatStage />
+        <Suspense fallback={null}>
+          <SplatStage />
+        </Suspense>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </RouteTransitionProvider>

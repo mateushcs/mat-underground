@@ -8,6 +8,7 @@ import {
   type SplatController,
   type SplatPreset,
 } from "@/lib/splatFx";
+import { runtimeSplatUrl } from "@/lib/prefetchSplats";
 import type { PortfolioStation } from "@/data/portfolioStations";
 
 interface StationSplatLayerProps {
@@ -31,7 +32,7 @@ export function StationSplatLayer({ station, tune, onReady }: StationSplatLayerP
   return (
     <>
       <SplatBackground
-        url={station.ply ?? "/subway.spz"}
+        url={runtimeSplatUrl(station.ply ?? "/subway.sog")}
         preset={stationPreset}
         interactive={!tune}
         controllerRef={controllerRef}

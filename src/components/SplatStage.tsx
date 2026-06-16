@@ -17,6 +17,7 @@ import {
 import { portfolioStations, type PortfolioStation } from "@/data/portfolioStations";
 import { subscribeActiveStation, type ActiveRequest } from "@/components/splatStageBus";
 import { hasScrollableAncestor } from "@/lib/scrollTargets";
+import { runtimeSplatUrl } from "@/lib/prefetchSplats";
 
 // One persistent renderer that PRELOADS every station's splat onto the GPU and
 // only toggles which one is visible. Navigation no longer creates a renderer or
@@ -36,8 +37,21 @@ const DOLLY_DAMPING = 0.1;
 // far cheaper than a cold parse+upload. Hold the readiness signal this long so
 // the doors open onto an already-sorted scene.
 const SETTLE_MS = 240;
+const SPLAT_PRELOAD_PROGRESS_EVENT = "mats:splats-preload-progress";
+const SPLAT_PRELOAD_DONE_EVENT = "mats:splats-preloaded";
 
-const splatUrlFor = (s: PortfolioStation) => s.ply ?? "/subway.spz";
+interface SplatPreloadState {
+  loaded: number;
+  total: number;
+  failed: number;
+  done: boolean;
+}
+
+type WindowWithSplatPreload = Window & {
+  __matsSplatsPreload?: SplatPreloadState;
+};
+
+const splatUrlFor = (s: PortfolioStation) => runtimeSplatUrl(s.ply ?? "/subway.sog");
 
 function frameDamp(amount: number, dt: number) {
   return 1 - Math.pow(1 - THREE.MathUtils.clamp(amount, 0.001, 0.999), Math.max(0, dt) * 60);
@@ -51,6 +65,15 @@ function presetFor(station: PortfolioStation): SplatPreset {
     camera: { ...DEFAULT_PRESET.camera, ...(tuned?.camera ?? {}) },
     effects: global ?? (hasEffects ? tuned!.effects : deriveLook(station.accent)),
   };
+}
+
+function emitSplatPreloadProgress(state: SplatPreloadState) {
+  if (typeof window === "undefined") return;
+  (window as WindowWithSplatPreload).__matsSplatsPreload = state;
+  window.dispatchEvent(new CustomEvent(SPLAT_PRELOAD_PROGRESS_EVENT, { detail: state }));
+  if (state.done) {
+    window.dispatchEvent(new CustomEvent(SPLAT_PRELOAD_DONE_EVENT, { detail: state }));
+  }
 }
 
 export function SplatStage() {
@@ -347,59 +370,83 @@ export function SplatStage() {
 
     // Kick off loading EVERY unique splat onto the GPU up front.
     (async () => {
-      const { SparkRenderer, SplatMesh } = await import("@sparkjsdev/spark");
-      if (disposed) return;
-      const spark = new SparkRenderer({
-        renderer,
-        focalAdjustment: 2,
-        premultipliedAlpha: true,
-        sortRadial: false,
-        preBlurAmount: 0,
-        blurAmount: 0.18,
-        maxStdDev: 2.35,
-        maxPixelRadius: 96,
-        minAlpha: 1 / 255,
-        enableLod: false,
-      });
-      scene.add(spark);
+      const urls = [
+        ...new Set(
+          portfolioStations.filter((station) => station.active !== false).map(splatUrlFor),
+        ),
+      ];
+      let loaded = 0;
+      let failed = 0;
+      emitSplatPreloadProgress({ loaded, total: urls.length, failed, done: false });
 
-      const urls = [...new Set(portfolioStations.map(splatUrlFor))];
-      for (const url of urls) {
-        if (disposed) break;
-        const m = new SplatMesh({
-          url,
-          extSplats: true,
-          editable: false,
-          raycastable: false,
+      try {
+        const { SparkRenderer, SplatMesh } = await import("@sparkjsdev/spark");
+        if (disposed) return;
+        const spark = new SparkRenderer({
+          renderer,
+          focalAdjustment: 2,
+          premultipliedAlpha: true,
+          sortRadial: false,
+          preBlurAmount: 0,
+          blurAmount: 0.18,
+          maxStdDev: 2.35,
+          maxPixelRadius: 96,
+          minAlpha: 1 / 255,
           enableLod: false,
-          lod: false,
-          nonLod: true,
         });
-        try {
-          await m.initialized;
-        } catch (err) {
-          console.warn("[SplatStage] splat failed:", url, err);
-          continue;
-        }
-        if (disposed) {
-          m.dispose?.();
-          break;
-        }
-        const box = m.getBoundingBox(true);
-        const diagonal = box.getSize(new THREE.Vector3()).length();
-        m.visible = false;
-        holder.add(m);
-        const entry: Entry = { mesh: m as Entry["mesh"], diagonal, ready: true };
-        entries.set(url, entry);
+        scene.add(spark);
 
-        // If a navigation is waiting on exactly this splat, reveal it now.
-        if (pendingUrl === url && activeUrl === url) {
-          pendingUrl = null;
-          frameStation(entry);
-          announceReady();
+        for (const url of urls) {
+          if (disposed) break;
+          const m = new SplatMesh({
+            url,
+            extSplats: true,
+            editable: false,
+            raycastable: false,
+            enableLod: false,
+            lod: false,
+            nonLod: true,
+          });
+          try {
+            await m.initialized;
+          } catch (err) {
+            failed += 1;
+            loaded += 1;
+            m.dispose?.();
+            console.warn("[SplatStage] splat failed:", url, err);
+            emitSplatPreloadProgress({ loaded, total: urls.length, failed, done: false });
+            continue;
+          }
+          if (disposed) {
+            m.dispose?.();
+            break;
+          }
+          const box = m.getBoundingBox(true);
+          const diagonal = box.getSize(new THREE.Vector3()).length();
+          m.visible = false;
+          holder.add(m);
+          const entry: Entry = { mesh: m as Entry["mesh"], diagonal, ready: true };
+          entries.set(url, entry);
+
+          loaded += 1;
+          emitSplatPreloadProgress({ loaded, total: urls.length, failed, done: false });
+
+          // If a navigation is waiting on exactly this splat, reveal it now.
+          if (pendingUrl === url && activeUrl === url) {
+            pendingUrl = null;
+            frameStation(entry);
+            announceReady();
+          }
+        }
+      } catch (err) {
+        failed += urls.length - loaded;
+        loaded = urls.length;
+        console.warn("[SplatStage] preload failed:", err);
+      } finally {
+        if (!disposed) {
+          emitSplatPreloadProgress({ loaded, total: urls.length, failed, done: true });
         }
       }
-      window.dispatchEvent(new Event("mats:splats-preloaded"));
     })();
 
     const unsubscribe = subscribeActiveStation((req) => activateRef.current(req));
