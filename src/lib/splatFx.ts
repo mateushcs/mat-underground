@@ -250,13 +250,16 @@ const PointerNeo = {
     time: { value: 0.0 },
     res: { value: new THREE.Vector2(1, 1) },
     mouse: { value: new THREE.Vector2(-10, -10) },
+    mouseTrail: {
+      value: Array.from({ length: 15 }, () => new THREE.Vector2(-10, -10)),
+    },
     hover: { value: 0.0 },
     amount: { value: 0.86 },
     radius: { value: 0.32 },
   },
   vertexShader: VERT,
   fragmentShader: `uniform sampler2D tDiffuse; uniform float time; uniform vec2 res;
-  uniform vec2 mouse; uniform float hover; uniform float amount; uniform float radius;
+  uniform vec2 mouse; uniform vec2 mouseTrail[15]; uniform float hover; uniform float amount; uniform float radius;
   varying vec2 vUv;
   float lum(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }
   float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -270,9 +273,13 @@ const PointerNeo = {
     float d = hash(i + vec2(1.0, 1.0));
     return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
   }
+  vec3 neonPal(float p){
+    return 0.56 + 0.44 * cos(6.28318 * (p + vec3(0.52, 0.86, 0.12)));
+  }
   void main(){
     vec2 aspect = vec2(res.x / max(res.y, 1.0), 1.0);
     vec2 delta = (vUv - mouse) * aspect;
+    float d = length(delta);
     vec2 px = 1.0 / res;
 
     vec3 base = texture2D(tDiffuse, vUv).rgb;
@@ -294,70 +301,100 @@ const PointerNeo = {
     float h8 = hash(tile8);
     float h18 = hash(tile18);
     float field = noise(vUv * vec2(10.0, 5.5) + vec2(time * 0.10, -time * 0.035));
-    float alongSurface = abs(dot(delta, tangent));
-    float acrossSurface = abs(dot(delta, normal));
-    float sceneGrain = noise(vUv * res * 0.055 + vec2(time * 0.18, -time * 0.11));
+    float organicField = 0.0;
+    vec2 swarmPull = vec2(0.0);
+    for(int i = 0; i < 15; i++){
+      float fi = float(i);
+      float seed = hash(vec2(fi * 3.17, fi + 8.23));
+      float seedB = hash(vec2(fi + 11.0, seed * 7.0));
+      float seedC = hash(vec2(seed * 13.0, fi + 3.0));
+      float seedD = hash(vec2(fi * 19.0, seed + 4.0));
+      float baseAngle = 6.28318 * seedB;
+      float baseDist = radius * sqrt(seedC) * 1.02;
+      vec2 base = vec2(cos(baseAngle), sin(baseAngle)) * baseDist;
+      float speedSlow = 0.16 + seed * 0.44;
+      float speedMid = 0.55 + seedB * 1.25;
+      float speedFast = 1.35 + seedC * 2.7;
+      float lane = floor(seedD * 3.0);
+      float chosenSpeed = mix(speedSlow, mix(speedMid, speedFast, step(1.5, lane)), step(0.5, lane));
+      vec2 driftA = vec2(
+        sin(time * chosenSpeed + fi * 4.71 + seed * 5.0),
+        cos(time * (chosenSpeed * (0.73 + seedB * 0.5)) + fi * 3.19)
+      );
+      vec2 driftB = vec2(
+        sin(time * speedFast * 0.37 + seedC * 8.0 + fi),
+        cos(time * speedSlow * 1.9 + seedB * 7.0 + fi * 2.4)
+      );
+      vec2 center = base + driftA * radius * (0.035 + seedD * 0.13) + driftB * radius * (0.018 + seed * 0.06);
+      vec2 particleDelta = (vUv - mouseTrail[i]) * aspect;
+      vec2 q = particleDelta - center;
+      vec2 surfaceQ = vec2(dot(q, tangent), dot(q, normal) * (1.22 + seed * 0.72));
+      float pulse = 0.5 + 0.5 * sin(time * (chosenSpeed * 1.28 + seedD * 1.4) + fi * 4.73 + seed * 6.28318);
+      float life = smoothstep(0.12, 0.62, pulse) * (1.0 - smoothstep(0.88, 1.0, pulse));
+      float rr = radius * (0.038 + 0.064 * hash(vec2(fi + 9.0, fi * 2.0))) * (0.72 + pulse * 0.46);
+      float ball = ((rr * rr) / (dot(surfaceQ, surfaceQ) + rr * rr * 0.42)) * (0.34 + life * 0.92);
+      organicField += ball;
+      swarmPull += (center - particleDelta) * ball;
+    }
     float sceneGate = smoothstep(
-      0.24,
-      0.88,
-      edge * 0.95 + surface * 0.44 + abs(baseLum - 0.5) * 0.16 + sceneGrain * 0.32
+      0.12,
+      0.68,
+      edge * 0.9 + surface * 0.56 + abs(baseLum - 0.5) * 0.2 + field * 0.32
     );
-    float surfaceReach = smoothstep(
-      1.0,
-      0.0,
-      alongSurface / max(radius * 1.18, 0.001) + acrossSurface / max(radius * 0.36, 0.001)
-    );
-    float coreReach = smoothstep(
-      1.0,
-      0.0,
-      alongSurface / max(radius * 0.66, 0.001) + acrossSurface / max(radius * 0.22, 0.001)
-    );
+    float flicker = smoothstep(0.28, 0.88, h18 * 0.36 + field * 0.42 + sin(time * 1.8 + h8 * 6.28318) * 0.22 + 0.32);
+    float organicCore = smoothstep(0.5, 1.34, organicField);
+    float organicMist = smoothstep(0.2, 0.66, organicField) * (1.0 - organicCore) * flicker * 0.18;
     float broken = smoothstep(0.18, 0.92, h18 + field * 0.55);
     float plates = smoothstep(0.35, 0.95, h8 + sin(time * 1.25 + h18 * 6.28318) * 0.16);
-    float fracture = smoothstep(0.34, 0.9, h18 * 0.42 + field * 0.34 + edge * 0.7);
-    float corridor = coreReach * fracture * sceneGate;
-    float wake = max(surfaceReach - coreReach, 0.0) * sceneGate * broken * 0.18;
-    float local = hover * (wake + corridor) * (0.22 + surface * 1.12);
+    float local = clamp(
+      hover * (organicCore * (0.24 + broken * flicker) + organicMist) * sceneGate * (0.42 + surface * 1.18),
+      0.0,
+      1.0
+    );
 
     vec2 blockJitter = (vec2(hash(tile8 + 4.1), hash(tile8 + 9.7)) - 0.5) * px * 16.0;
-    float shimmer = 0.5 + 0.5 * sin(time * 2.1 + h18 * 11.0 + baseLum * 7.0);
-    vec2 flow = tangent * (0.034 * amount * local * (0.42 + shimmer))
-      + normal * (0.018 * amount * local * (plates - 0.5))
-      + blockJitter * local * plates * 1.55;
+    float shimmer = 0.5 + 0.5 * sin(time * (1.45 + h18 * 1.7) + h18 * 11.0 + baseLum * 7.0);
+    vec2 organicDir = normalize(swarmPull + tangent * (field - 0.5) * 0.08 + normal * (plates - 0.5) * 0.05 + vec2(0.0001));
+    vec2 flow = organicDir * (0.026 * amount * local * (0.5 + shimmer))
+      + tangent * (0.016 * amount * local * (0.45 + shimmer))
+      + normal * (0.01 * amount * local * (plates - 0.5))
+      + blockJitter * local * plates * 1.18;
     vec2 sampleUv = vUv + flow;
 
     vec4 c = texture2D(tDiffuse, sampleUv);
     float l = lum(c.rgb);
     float detail = smoothstep(0.025, 0.2, abs(l - baseLum) + edge * 0.55);
+    float angle = atan(tangent.y, tangent.x);
+    vec3 neon = neonPal(time * 0.045 + angle * 0.08 + l * 0.12 + h18 * 0.12);
 
     vec2 split = (tangent + normal * 0.42) * (0.006 * amount * local + 0.0025 * surface * local);
-    float splitLumA = lum(texture2D(tDiffuse, sampleUv - split).rgb);
-    float splitLumB = lum(texture2D(tDiffuse, sampleUv + split).rgb);
-    float warpedLum = mix(l, (splitLumA + splitLumB) * 0.5, local * 0.58);
-
-    vec2 gridUv = fract(vUv * res / 8.0);
-    float gridLine = max(
-      1.0 - smoothstep(0.0, 0.1, min(gridUv.x, 1.0 - gridUv.x)),
-      1.0 - smoothstep(0.0, 0.1, min(gridUv.y, 1.0 - gridUv.y))
+    vec3 chroma = vec3(
+      texture2D(tDiffuse, sampleUv - split).r,
+      c.g,
+      texture2D(tDiffuse, sampleUv + split).b
     );
+
+    vec2 pearlTile = floor(vUv * res / 5.0);
+    vec2 pearlUv = fract(vUv * res / 5.0) - 0.5;
+    float pearlHash = hash(pearlTile + floor(time * 4.0) * 0.13);
+    float pearls =
+      smoothstep(0.42, 0.04, length(pearlUv)) *
+      smoothstep(0.34, 0.82, pearlHash + organicCore * 0.48) *
+      flicker;
     float mosaic = plates * broken * local;
     float dissolve = step(0.78, shimmer) * h8 * mosaic;
 
-    vec2 ditherTile = floor(vUv * res / 4.0);
-    float ditherNoise = hash(ditherTile + floor(time * 8.0) * 0.17);
-    float ordered = fract(ditherTile.x * 0.375 + ditherTile.y * 0.625 + ditherNoise * 0.42);
-    float bwStep = step(ordered, clamp(warpedLum + detail * 0.16 - gridLine * 0.05, 0.0, 1.0));
-    vec3 bwSoft = vec3(smoothstep(0.02, 0.98, warpedLum));
-    vec3 bwHard = vec3(bwStep);
-    vec3 bw = mix(bwSoft, bwHard, clamp(mosaic * 1.25 + local * 0.42, 0.0, 1.0));
-    bw *= 1.0 - gridLine * mosaic * 0.24;
-    bw = mix(bw, vec3(0.0), dissolve * 0.28);
-    bw += vec3(detail) * local * amount * 0.16;
+    vec3 quant = floor(chroma * 9.0 + h8 * 0.9) / 9.0;
+    vec3 outc = mix(c.rgb, chroma, local * 0.42);
+    outc = mix(outc, quant, mosaic * 0.38);
+    outc += neon * detail * local * amount * 1.05;
+    outc += neon * pearls * local * amount * 0.52;
+    outc += neon * dissolve * amount * 0.24;
+    outc += neon * smoothstep(0.58, 1.0, l) * local * amount * 0.28;
+    outc = mix(outc, outc * vec3(0.82, 0.92, 1.06) + neon * 0.16, local * 0.26);
 
     vec3 original = texture2D(tDiffuse, vUv).rgb;
-    vec3 originalBw = vec3(lum(original));
-    vec3 outc = mix(original, originalBw, clamp(local * 0.72, 0.0, 0.92));
-    outc = mix(outc, bw, clamp(local + mosaic * 0.55, 0.0, 0.96));
+    outc = mix(original, outc, clamp(local * 1.18 + mosaic * 0.48, 0.0, 0.96));
 
     gl_FragColor = vec4(outc, c.a);
   }`,
@@ -486,6 +523,185 @@ export function syncFxResolution(byKey: Record<string, FxPass>, pxSize: THREE.Ve
   byKey.neo.uniforms.res.value.copy(pxSize);
 }
 
+function dampValue(amount: number, dt: number) {
+  return 1 - Math.pow(1 - THREE.MathUtils.clamp(amount, 0.001, 0.999), Math.max(0, dt) * 60);
+}
+
+function trailSeed(i: number, salt = 0) {
+  const seed = (Math.sin((i + 1) * (12.9898 + salt * 7.233)) * 43758.5453) % 1;
+  return seed < 0 ? seed + 1 : seed;
+}
+
+function trailSpring(i: number) {
+  const seed = trailSeed(i, 0.17);
+  const lane = trailSeed(i, 0.63);
+  const base = 0.014 + seed * seed * 0.115;
+  return lane > 0.78 ? base * 1.85 : base;
+}
+
+function trailDrag(i: number, frameScale: number) {
+  const seed = trailSeed(i, 1.31);
+  return Math.pow(0.6 + seed * 0.34, frameScale);
+}
+
+function clampWake(value: number) {
+  return THREE.MathUtils.clamp(value, -0.28, 0.28);
+}
+
+function ensureNeoTrailState(
+  pass: FxPass,
+  trail: THREE.Vector2[],
+  targetX: number,
+  targetY: number,
+) {
+  const velocities = pass.__neoTrailVelocity as THREE.Vector2[] | undefined;
+  if (!velocities || velocities.length !== trail.length) {
+    pass.__neoTrailVelocity = trail.map(() => new THREE.Vector2());
+  }
+
+  if (!pass.__neoPrevPointer) pass.__neoPrevPointer = new THREE.Vector2(targetX, targetY);
+  if (!pass.__neoPointerVelocity) pass.__neoPointerVelocity = new THREE.Vector2();
+}
+
+function resetNeoTrail(pass: FxPass, trail: THREE.Vector2[], targetX: number, targetY: number) {
+  ensureNeoTrailState(pass, trail, targetX, targetY);
+  for (const point of trail) point.set(targetX, targetY);
+  for (const velocity of pass.__neoTrailVelocity as THREE.Vector2[]) velocity.set(0, 0);
+  (pass.__neoPrevPointer as THREE.Vector2).set(targetX, targetY);
+  (pass.__neoPointerVelocity as THREE.Vector2).set(0, 0);
+  pass.__neoTrailTime = 0;
+  pass.__neoTrailReady = true;
+}
+
+function updatePointerVelocity(pass: FxPass, targetX: number, targetY: number, dt: number) {
+  const prev = pass.__neoPrevPointer as THREE.Vector2;
+  const pointerVelocity = pass.__neoPointerVelocity as THREE.Vector2;
+  const rawX = clampWake(targetX - prev.x);
+  const rawY = clampWake(targetY - prev.y);
+  prev.set(targetX, targetY);
+
+  const alpha = dampValue(0.32, dt);
+  pointerVelocity.x += (rawX - pointerVelocity.x) * alpha;
+  pointerVelocity.y += (rawY - pointerVelocity.y) * alpha;
+
+  return pointerVelocity;
+}
+
+function trailTarget(
+  i: number,
+  targetX: number,
+  targetY: number,
+  pointerVelocity: THREE.Vector2,
+  time: number,
+) {
+  const speed = pointerVelocity.length();
+  const dir =
+    speed > 0.00035
+      ? pointerVelocity.clone().multiplyScalar(1 / speed)
+      : new THREE.Vector2(
+          Math.cos(time * 0.8 + i * 1.93),
+          Math.sin(time * 0.7 + i * 2.41),
+        ).normalize();
+  const side = new THREE.Vector2(-dir.y, dir.x);
+  const seedA = trailSeed(i, 0.29);
+  const seedB = trailSeed(i, 0.71);
+  const seedC = trailSeed(i, 1.07);
+  const sideSign = seedB > 0.5 ? 1 : -1;
+  const wake = THREE.MathUtils.clamp(speed * 18, 0.2, 2.1);
+  const lag = 0.55 + seedA * seedA * 5.2;
+  const wobble =
+    Math.sin(time * (0.85 + seedB * 2.2) + i * 2.77) * (0.006 + seedC * 0.024) +
+    Math.sin(time * (2.2 + seedA * 3.6) + i * 4.13) * (0.002 + seedB * 0.01);
+  const sideSpread = sideSign * (0.012 + seedC * 0.07) * wake;
+  const forwardSpread = (seedB - 0.5) * (0.016 + seedA * 0.08) * wake;
+
+  return {
+    x:
+      targetX -
+      pointerVelocity.x * lag +
+      side.x * sideSpread +
+      dir.x * forwardSpread +
+      side.x * wobble,
+    y:
+      targetY -
+      pointerVelocity.y * lag +
+      side.y * sideSpread +
+      dir.y * forwardSpread +
+      side.y * wobble,
+  };
+}
+
+function moveTrailPoint(
+  i: number,
+  point: THREE.Vector2,
+  velocity: THREE.Vector2,
+  target: { x: number; y: number },
+  dt: number,
+) {
+  const frameScale = Math.max(0.001, dt * 60);
+  const spring = trailSpring(i) * frameScale;
+  velocity.x += (target.x - point.x) * spring;
+  velocity.y += (target.y - point.y) * spring;
+  velocity.multiplyScalar(trailDrag(i, frameScale));
+
+  point.x = THREE.MathUtils.clamp(point.x + velocity.x * frameScale, -0.35, 1.35);
+  point.y = THREE.MathUtils.clamp(point.y + velocity.y * frameScale, -0.35, 1.35);
+}
+
+function shouldResetTrail(pass: FxPass, targetX: number, targetY: number) {
+  const prev = pass.__neoPrevPointer as THREE.Vector2 | undefined;
+  if (!prev) return false;
+  return Math.abs(targetX - prev.x) + Math.abs(targetY - prev.y) > 1.15;
+}
+
+function advanceTrailTime(pass: FxPass, dt: number) {
+  pass.__neoTrailTime = (pass.__neoTrailTime ?? 0) + Math.max(0, dt);
+  return pass.__neoTrailTime as number;
+}
+
+function updateTrail(
+  pass: FxPass,
+  trail: THREE.Vector2[],
+  targetX: number,
+  targetY: number,
+  dt: number,
+) {
+  const normalizedDt = Math.min(Math.max(dt, 0.001), 0.05);
+  const time = advanceTrailTime(pass, normalizedDt);
+  const pointerVelocity = updatePointerVelocity(pass, targetX, targetY, normalizedDt);
+  const velocities = pass.__neoTrailVelocity as THREE.Vector2[];
+
+  for (let i = 0; i < trail.length; i++) {
+    const target = trailTarget(i, targetX, targetY, pointerVelocity, time);
+    moveTrailPoint(i, trail[i], velocities[i], target, normalizedDt);
+  }
+}
+
+export function updatePointerNeo(
+  pass: FxPass | undefined,
+  targetX: number,
+  targetY: number,
+  hover: number,
+  dt: number,
+) {
+  const uniforms = pass?.uniforms;
+  if (!uniforms) return;
+
+  uniforms.mouse.value.set(targetX, targetY);
+  uniforms.hover.value = hover;
+
+  const trail = uniforms.mouseTrail?.value as THREE.Vector2[] | undefined;
+  if (!trail) return;
+
+  ensureNeoTrailState(pass, trail, targetX, targetY);
+  if (!pass.__neoTrailReady || shouldResetTrail(pass, targetX, targetY)) {
+    resetNeoTrail(pass, trail, targetX, targetY);
+    return;
+  }
+
+  updateTrail(pass, trail, targetX, targetY, dt);
+}
+
 /**
  * Enable + configure only the effects present in `preset.effects`, exactly as
  * the explorer's applyPreset() does. Everything else is turned off.
@@ -563,8 +779,8 @@ export function applyPreset(byKey: Record<string, FxPass>, preset: SplatPreset) 
   }
 
   byKey.neo.enabled = true;
-  byKey.neo.uniforms.amount.value = 0.9;
-  byKey.neo.uniforms.radius.value = 0.18;
+  byKey.neo.uniforms.amount.value = 1.08;
+  byKey.neo.uniforms.radius.value = 0.34;
 }
 
 // ===========================================================================

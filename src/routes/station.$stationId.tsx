@@ -10,6 +10,7 @@ import {
 import { getStationContent, type StationMedia } from "@/data/portfolioContent";
 import { getStoredLanguage, htmlLang, type ContentLang } from "@/lib/language";
 import { requestActiveStation } from "@/components/splatStageBus";
+import { posterUrlFor, setViewMode, useViewMode, type ViewMode } from "@/lib/viewMode";
 import { groupMedia, mediaLabel, MEDIA_CATEGORY_LABELS } from "@/lib/mediaCategories";
 
 const StationSplatLayer = lazy(() =>
@@ -17,6 +18,25 @@ const StationSplatLayer = lazy(() =>
     default: module.StationSplatLayer,
   })),
 );
+
+const HEADER_LABELS: Record<
+  ContentLang,
+  { client: string; company: string; period: string; role: string }
+> = {
+  pt: { client: "Cliente", company: "Empresa", period: "Duração", role: "Função" },
+  en: { client: "Client", company: "Company", period: "Duration", role: "Role" },
+};
+
+const MODE_TOGGLE_LABELS: Record<ContentLang, Record<ViewMode, { full: string; short: string }>> = {
+  pt: {
+    lite: { full: "Alterar para modo 3D", short: "Modo 3D" },
+    "3d": { full: "Voltar ao modo leve", short: "Modo leve" },
+  },
+  en: {
+    lite: { full: "Switch to 3D mode", short: "3D mode" },
+    "3d": { full: "Back to lite mode", short: "Lite mode" },
+  },
+};
 
 export const Route = createFileRoute("/station/$stationId")({
   beforeLoad: ({ params }) => {
@@ -50,6 +70,10 @@ function StationDetail({ station }: { station: PortfolioStation }) {
   const useOwnSplat = tune || posterMode;
   const [splatMounted, setSplatMounted] = useState(false);
   const [lang, setLang] = useState<ContentLang>("pt");
+  const mode = useViewMode();
+  // In 3D mode the poster still covers the stage until the splat reports ready,
+  // so switching modes never flashes the empty dark backdrop.
+  const [stageReady, setStageReady] = useState(false);
   const { go } = useRouteTransition();
 
   useEffect(() => {
@@ -69,6 +93,34 @@ function StationDetail({ station }: { station: PortfolioStation }) {
     requestActiveStation({ station, interactive: true });
     return () => requestActiveStation(null);
   }, [station, useOwnSplat]);
+
+  useEffect(() => {
+    if (useOwnSplat) return;
+    if (mode !== "3d") {
+      setStageReady(false);
+      // Lite mode: no splat to wait for — release the door transition once the
+      // poster is decoded (cap so a missing poster never holds the doors).
+      let done = false;
+      let cap = 0;
+      const announce = () => {
+        if (done) return;
+        done = true;
+        window.clearTimeout(cap);
+        window.dispatchEvent(new Event("mats:splat-ready"));
+      };
+      const img = new Image();
+      img.src = posterUrlFor(station.slug);
+      img.decode().then(announce, announce);
+      cap = window.setTimeout(announce, 1500);
+      return () => {
+        done = true;
+        window.clearTimeout(cap);
+      };
+    }
+    const onReady = () => setStageReady(true);
+    window.addEventListener("mats:splat-ready", onReady);
+    return () => window.removeEventListener("mats:splat-ready", onReady);
+  }, [mode, useOwnSplat, station.slug]);
 
   const copy = getStationContent(station.lineId, lang) ?? getStationContent(station.lineId, "pt");
   const creditBookLink =
@@ -105,6 +157,18 @@ function StationDetail({ station }: { station: PortfolioStation }) {
           <StationSplatLayer station={station} tune={tune} />
         </Suspense>
       )}
+      {!useOwnSplat && (
+        <div
+          className={`station-poster${mode === "3d" && stageReady ? " is-hidden" : ""}`}
+          aria-hidden="true"
+          style={{
+            backgroundImage: `url(${posterUrlFor(station.slug)})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            transition: "opacity 600ms ease",
+          }}
+        />
+      )}
       <div className="station-veil" aria-hidden="true" />
 
       <button
@@ -126,9 +190,43 @@ function StationDetail({ station }: { station: PortfolioStation }) {
         {lang === "en" ? "Map" : "Mapa"}
       </button>
 
+      <button
+        type="button"
+        onClick={() => setViewMode(mode === "3d" ? "lite" : "3d")}
+        aria-label={MODE_TOGGLE_LABELS[lang][mode].full}
+        className="station-mode-toggle inline-flex h-10 items-center gap-2 px-3 text-[12px] font-bold uppercase tracking-[0.12em] text-[#e5e1d6] transition"
+      >
+        {/* Both labels ship; CSS picks one so the button never collides with the
+            back link on narrow phones (they overlap at 320px with the long one). */}
+        <span className="station-mode-toggle-full">{MODE_TOGGLE_LABELS[lang][mode].full}</span>
+        <span className="station-mode-toggle-short">{MODE_TOGGLE_LABELS[lang][mode].short}</span>
+      </button>
+
       <section className="station-shell">
         <article className="station-glass-panel">
           <h1 className="station-content-title">{copy?.title}</h1>
+          {copy?.header && (
+            <dl className="station-header">
+              {copy.header.client && copy.header.client !== copy.header.company && (
+                <div className="station-header-item">
+                  <dt>{HEADER_LABELS[lang].client}</dt>
+                  <dd>{copy.header.client}</dd>
+                </div>
+              )}
+              <div className="station-header-item">
+                <dt>{HEADER_LABELS[lang].company}</dt>
+                <dd>{copy.header.company}</dd>
+              </div>
+              <div className="station-header-item">
+                <dt>{HEADER_LABELS[lang].period}</dt>
+                <dd>{copy.header.period}</dd>
+              </div>
+              <div className="station-header-item">
+                <dt>{HEADER_LABELS[lang].role}</dt>
+                <dd>{copy.header.role}</dd>
+              </div>
+            </dl>
+          )}
           {copy?.body.map((paragraph, i) => {
             if (paragraph.startsWith("## ")) {
               return (
@@ -141,7 +239,7 @@ function StationDetail({ station }: { station: PortfolioStation }) {
               const [src, alt] = paragraph.slice(6, -2).split("|");
               return (
                 <figure key={i} className="station-photo">
-                  <img src={src} alt={alt ?? ""} loading="lazy" />
+                  <img src={src} alt={alt ?? ""} loading="lazy" decoding="async" />
                 </figure>
               );
             }
@@ -251,6 +349,8 @@ function StationMediaGrid({ media, lang }: { media: StationMedia[]; lang: Conten
                             src={item.image}
                             alt={item.imageAlt}
                             className="recommendation-cover"
+                            loading="lazy"
+                            decoding="async"
                           />
                         ) : (
                           <div

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { useRouter } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { flushSync } from "react-dom";
 import {
   stations as allStations,
@@ -24,8 +24,9 @@ import {
   type ContentLang,
 } from "@/lib/language";
 import { getStoredTheme, setStoredTheme, themeAttrs, type MapTheme } from "@/lib/theme";
-import { Moon, Sun } from "lucide-react";
+import { BookOpen, Boxes, Moon, Sun } from "lucide-react";
 import { warmSplat } from "@/lib/prefetchSplats";
+import { setViewMode, useViewMode } from "@/lib/viewMode";
 import { layoutLabels, secondaryLabelAngles, type Box, type LabelItem } from "@/lib/labelLayout";
 import { useRouteTransition, type DissolveOrigin } from "@/components/RouteTransition";
 import { MapAtmosphere } from "@/components/MapAtmosphere";
@@ -164,8 +165,8 @@ function segmentIntersectsBox(
 // pages and the reading mode all share one source.
 type Language = ContentLang;
 
-const ACTIVE_LINE_IDS = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8"] as const;
-const COLORED_LINE_IDS = new Set(["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8"]);
+const ACTIVE_LINE_IDS = ["L1", "L2", "L9", "L3", "L4", "L5", "L7", "L8"] as const;
+const COLORED_LINE_IDS = new Set(["L1", "L2", "L3", "L4", "L5", "L7", "L8", "L9"]);
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 6;
 const DESKTOP_INITIAL_VIEW: ViewState = { x: 0, y: 0, k: 2.35 };
@@ -451,6 +452,8 @@ export function TransitMap() {
     setStoredLanguage(language);
     document.documentElement.lang = htmlLang(language);
   }, [language]);
+
+  const viewMode = useViewMode();
 
   const { go } = useRouteTransition();
   const warmStationRoute = useCallback(
@@ -1585,50 +1588,91 @@ export function TransitMap() {
 
       <div className="map-film pointer-events-none" aria-hidden="true" />
 
-      <div className="map-controls pointer-events-auto">
-        <div className="map-language-tabs">
-          {LANGUAGES.map((item) => {
-            const active = language === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setLanguage(item.id)}
-                aria-pressed={active}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </div>
-        <button
-          type="button"
-          className="map-theme-toggle"
-          onClick={toggleTheme}
-          aria-pressed={theme === "light"}
-          aria-label={
-            theme === "dark"
-              ? language === "en"
-                ? "Switch to light mode"
-                : "Mudar para o modo claro"
-              : language === "en"
-                ? "Switch to dark mode"
-                : "Mudar para o modo escuro"
-          }
-        >
-          {theme === "dark" ? (
-            <Sun className="h-4 w-4" aria-hidden="true" />
-          ) : (
-            <Moon className="h-4 w-4" aria-hidden="true" />
-          )}
-        </button>
-      </div>
-
       <nav
         aria-label="Linhas ativas"
         className="map-legend pointer-events-auto flex flex-col items-start gap-[3px]"
         onMouseLeave={() => setHoveredLineId(null)}
       >
+        <div className="map-menu-controls">
+          <div
+            className="map-language-tabs"
+            data-tip={language === "en" ? "Text language." : "Idioma do texto."}
+          >
+            {LANGUAGES.map((item) => {
+              const active = language === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setLanguage(item.id)}
+                  aria-pressed={active}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            className="map-theme-toggle"
+            onClick={toggleTheme}
+            aria-pressed={theme === "light"}
+            data-tip={language === "en" ? "Light or dark mode." : "Modo claro ou escuro."}
+            aria-label={
+              theme === "dark"
+                ? language === "en"
+                  ? "Switch to light mode"
+                  : "Mudar para o modo claro"
+                : language === "en"
+                  ? "Switch to dark mode"
+                  : "Mudar para o modo escuro"
+            }
+          >
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Moon className="h-4 w-4" aria-hidden="true" />
+            )}
+          </button>
+          <Link
+            to="/leitura"
+            className="map-reading-btn"
+            data-tip={
+              language === "en"
+                ? "Reading mode: accessible text version."
+                : "Modo leitura: versão em texto, acessível."
+            }
+            aria-label={language === "en" ? "Reading mode" : "Modo leitura"}
+          >
+            <BookOpen className="h-4 w-4" aria-hidden="true" />
+          </Link>
+          <button
+            type="button"
+            className={`map-mode-toggle${viewMode === "3d" ? " is-active" : ""}`}
+            onClick={() => setViewMode(viewMode === "3d" ? "lite" : "3d")}
+            aria-pressed={viewMode === "3d"}
+            data-tip={
+              language === "en"
+                ? "3D mode loads 3D backgrounds on the stations! but it can be quite heavy."
+                : "o modo 3D carrega fundos 3D nas estações! mas pode ser bem pesado."
+            }
+            aria-label={
+              (viewMode === "3d"
+                ? language === "en"
+                  ? "Back to lite mode. "
+                  : "Voltar ao modo leve. "
+                : language === "en"
+                  ? "Turn on 3D mode. "
+                  : "Ativar modo 3D. ") +
+              (language === "en"
+                ? "3D mode loads 3D backgrounds on the stations but it can be quite heavy."
+                : "O modo 3D carrega fundos 3D nas estações mas pode ser bem pesado.")
+            }
+          >
+            <Boxes className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>3D</span>
+          </button>
+        </div>
         <ul className="map-line-list">
           {activeLines.map((line) => {
             const slug = stationSlugForLine(line.id);

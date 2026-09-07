@@ -92,9 +92,7 @@ function ReadingMode() {
       </a>
 
       <header className="reading-header">
-        <p className="reading-kicker">MATS Subway / accessible edition</p>
         <h1>{intro.heading}</h1>
-        <p className="reading-tagline">{intro.tagline}</p>
 
         <nav className="reading-controls" aria-label={copy.language}>
           <div className="reading-langs" role="group" aria-label={copy.language}>
@@ -140,6 +138,20 @@ function ReadingMode() {
             <article key={lineId} className="reading-section">
               <p className="reading-section-index">{lineId.replace("L", "").padStart(2, "0")}</p>
               <h2>{station.title}</h2>
+              {station.header && (
+                <p className="reading-section-meta">
+                  {[
+                    station.header.client && station.header.client !== station.header.company
+                      ? station.header.client
+                      : null,
+                    station.header.company,
+                    station.header.period,
+                    station.header.role,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              )}
               {station.body.map((paragraph, i) => {
                 if (paragraph.startsWith("## ")) {
                   return (

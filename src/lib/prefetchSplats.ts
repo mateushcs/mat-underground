@@ -1,4 +1,5 @@
 import { portfolioStations } from "@/data/portfolioStations";
+import { getViewMode } from "@/lib/viewMode";
 
 export function runtimeSplatUrl(url: string): string {
   return url;
@@ -22,6 +23,8 @@ const warmed = new Set<string>();
  * is warm by the time they click and the station's first frame lands sooner.
  */
 export function warmSplat(url: string) {
+  // Lite mode never loads splats — don't burn bandwidth warming them.
+  if (getViewMode() !== "3d") return;
   url = runtimeSplatUrl(url);
   if (typeof window === "undefined" || warmed.has(url)) return;
   warmed.add(url);

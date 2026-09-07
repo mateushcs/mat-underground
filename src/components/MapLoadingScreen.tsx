@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { splatUrls } from "@/lib/prefetchSplats";
 import { getStoredTheme } from "@/lib/theme";
+import { getViewMode } from "@/lib/viewMode";
 
 const MIN_VISIBLE_MS = 1800;
 const SPLAT_PRELOAD_PROGRESS_EVENT = "mats:splats-preload-progress";
@@ -64,7 +65,8 @@ export function MapLoadingScreen() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    const allowPrefetch = !params.has("__nofetch");
+    // Lite mode never mounts the splat stage, so there is no preload to wait on.
+    const allowPrefetch = !params.has("__nofetch") && getViewMode() === "3d";
     const routeRevealRunning = document.documentElement.dataset.routeTransitionRunning === "true";
     if (params.has("__dissolvePreview") || routeRevealRunning || curtainShown) {
       setGone(true);
@@ -80,6 +82,11 @@ export function MapLoadingScreen() {
           if (!cancelled) setProgress({ loaded, total });
         })
       : Promise.resolve();
+    if (!allowPrefetch) {
+      // Nothing to download — let the bar read full while the curtain plays out.
+      const total = splatUrls().length;
+      setProgress({ loaded: total, total });
+    }
 
     Promise.all([minDelay, fontsReady, splatsReady]).then(() => {
       if (cancelled) return;

@@ -12,6 +12,7 @@ import {
   deriveLook,
   syncFxResolution,
   TIME_FX_KEYS,
+  updatePointerNeo,
   type SplatPreset,
 } from "@/lib/splatFx";
 import { portfolioStations, type PortfolioStation } from "@/data/portfolioStations";
@@ -334,10 +335,13 @@ export function SplatStage() {
       ny += ((hovering ? targetNy : 0) - ny) * pointerAlpha;
       neoHover += ((interactive && hovering ? 1 : 0) - neoHover) * frameDamp(0.12, dt);
       const neo = fx.byKey.neo;
-      if (neo?.uniforms) {
-        neo.uniforms.mouse.value.set((nx + 1) * 0.5, 1 - (ny + 1) * 0.5);
-        neo.uniforms.hover.value = neoHover;
-      }
+      updatePointerNeo(
+        neo,
+        ((hovering ? targetNx : 0) + 1) * 0.5,
+        1 - ((hovering ? targetNy : 0) + 1) * 0.5,
+        neoHover,
+        dt,
+      );
 
       const effParallax = Math.max(cam.parallaxDeg, MIN_PARALLAX_DEG);
       const paraRad = THREE.MathUtils.degToRad(effParallax * PARALLAX_SCALE);

@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { TransitMap } from "@/components/TransitMap";
 import { MapLoadingScreen } from "@/components/MapLoadingScreen";
@@ -61,15 +60,6 @@ function ReadingEntry() {
         aria-describedby="reading-entry-description"
       >
         {labels.skip}
-      </Link>
-      <Link
-        to="/leitura"
-        className="reading-mode-btn"
-        aria-label={labels.aria}
-        aria-describedby="reading-entry-description"
-      >
-        <BookOpen className="h-4 w-4" aria-hidden="true" />
-        {labels.button}
       </Link>
     </>
   );

@@ -10,6 +10,7 @@ import {
   DEFAULT_PRESET,
   syncFxResolution,
   TIME_FX_KEYS,
+  updatePointerNeo,
   type SplatController,
   type SplatPreset,
 } from "@/lib/splatFx";
@@ -392,10 +393,13 @@ export function SplatBackground({
       ny += ((hovering ? targetNy : 0) - ny) * pointerAlpha;
       neoHover += ((interactiveRef.current && hovering ? 1 : 0) - neoHover) * frameDamp(0.12, dt);
       const neo = fx.byKey.neo;
-      if (neo?.uniforms) {
-        neo.uniforms.mouse.value.set((nx + 1) * 0.5, 1 - (ny + 1) * 0.5);
-        neo.uniforms.hover.value = neoHover;
-      }
+      updatePointerNeo(
+        neo,
+        ((hovering ? targetNx : 0) + 1) * 0.5,
+        1 - ((hovering ? targetNy : 0) + 1) * 0.5,
+        neoHover,
+        dt,
+      );
 
       // lean (espiar pros lados, limitado a parallaxDeg) + retorno ao centro.
       // Piso pra nunca ser zero — senão a estação fica imóvel sob o mouse.

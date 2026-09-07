@@ -113,9 +113,12 @@ export const portfolioStations: PortfolioStation[] = [
     },
   },
   {
-    slug: "recomendacoes",
-    lineId: "L6",
-    accent: "#b7839c",
+    slug: "tour-house",
+    lineId: "L9",
+    accent: "#7da09a",
+    // No dedicated scene yet: reuse the recomendacoes (L6) splat + tuned preset,
+    // so 3D mode is framed correctly and the lite poster (a copy of
+    // recomendacoes.jpg) matches what 3D shows.
     ply: "/stations/pexels-xayriddin-37431887.sog",
     preset: {
       camera: {

@@ -84,8 +84,8 @@
 @layer theme {
   :root,
   :host {
-    --font-sans: "Graphik", "Inter", system-ui, -apple-system, sans-serif;
-    --font-mono: "Graphik", "Inter", system-ui, -apple-system, sans-serif;
+    --font-sans: "Satoshi", system-ui, -apple-system, sans-serif;
+    --font-mono: "Satoshi", system-ui, -apple-system, sans-serif;
     --color-black: #000;
     --spacing: 0.25rem;
     --container-sm: 24rem;
@@ -115,12 +115,12 @@
     --aspect-video: 16 / 9;
     --default-transition-duration: 0.15s;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    --default-font-family: "Graphik", "Inter", system-ui, -apple-system, sans-serif;
-    --default-mono-font-family: "Graphik", "Inter", system-ui, -apple-system, sans-serif;
+    --default-font-family: "Satoshi", system-ui, -apple-system, sans-serif;
+    --default-mono-font-family: "Satoshi", system-ui, -apple-system, sans-serif;
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-border: var(--border);
-    --font-display: "Graphik", "Inter", system-ui, -apple-system, sans-serif;
+    --font-display: "Satoshi", system-ui, -apple-system, sans-serif;
   }
 }
 @layer base {
@@ -1292,8 +1292,7 @@
   }
   .font-display {
     font-family:
-      Graphik,
-      Inter,
+      Satoshi,
       system-ui,
       -apple-system,
       sans-serif;
@@ -1301,8 +1300,7 @@
   .font-mono,
   .font-sans {
     font-family:
-      Graphik,
-      Inter,
+      Satoshi,
       system-ui,
       -apple-system,
       sans-serif;
@@ -2861,28 +2859,23 @@
   inherits: false;
   initial-value: 0;
 }
-/* Graphik — only three real weights: Regular, Medium, Bold. Weight ranges map
-   every requested weight to one of the three faces so nothing is faux-rendered
-   and no other Graphik variation (Semibold/Black/Compact) is ever loaded. */
+/* Satoshi (Fontshare) — variable font, weights 300–900, full Latin incl.
+   Portuguese accents. Replaces the old Graphik trial cut, which shipped with no
+   accented glyphs (ç/ã/õ/é fell back to the system font mid-word). */
 @font-face {
-  font-family: Graphik;
-  src: url(/fonts/graphik/Graphik-Regular-Trial.otf) format("opentype");
-  font-weight: 1 450;
+  font-family: Satoshi;
+  src:
+    url(/fonts/satoshi/Satoshi-Variable.woff2) format("woff2"),
+    url(/fonts/satoshi/Satoshi-Variable.woff) format("woff");
+  font-weight: 300 900;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: Graphik;
-  src: url(/fonts/graphik/Graphik-Medium-Trial.otf) format("opentype");
-  font-weight: 451 599;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: Graphik;
-  src: url(/fonts/graphik/Graphik-Bold-Trial.otf) format("opentype");
-  font-weight: 600 1000;
-  font-style: normal;
+  font-family: Satoshi;
+  src: url(/fonts/satoshi/Satoshi-VariableItalic.woff2) format("woff2");
+  font-weight: 300 900;
+  font-style: italic;
   font-display: swap;
 }
 :root {
@@ -3706,7 +3699,34 @@
   position: fixed;
   inset: 0;
 }
+/* Positioned here rather than with Tailwind utilities: styles.css is a
+   pre-compiled artifact (imported as ?url, no JIT pass), so `right-*` classes
+   that no other component already uses simply do not exist at runtime. */
+.station-mode-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+}
+@media (min-width: 640px) {
+  .station-mode-toggle {
+    top: 32px;
+    right: 32px;
+  }
+}
+.station-mode-toggle-short {
+  display: none;
+}
+@media (max-width: 420px) {
+  .station-mode-toggle-full {
+    display: none;
+  }
+  .station-mode-toggle-short {
+    display: inline;
+  }
+}
 .station-back-link,
+.station-mode-toggle,
 .station-kicker {
   -webkit-backdrop-filter: blur(18px) saturate(1.5) brightness(1.16);
   background: linear-gradient(#ffffff24, #0000 70%), #12151875;
@@ -3714,7 +3734,8 @@
   border-radius: 2px;
   box-shadow: inset 0 1px #fff3;
 }
-.station-back-link:hover {
+.station-back-link:hover,
+.station-mode-toggle:hover {
   color: #15181b;
   background: #e5e1d6f0;
   border-color: #fff6;
@@ -5601,7 +5622,8 @@ html[data-route-reveal="glitch"]::view-transition-new(root) {
   background:
     linear-gradient(90deg, #0405062e, #0000 45%), linear-gradient(90deg, #0000 54%, #05060747);
 }
-.station-back-link {
+.station-back-link,
+.station-mode-toggle {
   border: 2px solid var(--editorial-paper);
   background: var(--editorial-ink);
   height: 38px;
@@ -5611,7 +5633,8 @@ html[data-route-reveal="glitch"]::view-transition-new(root) {
   font-family: var(--font-mono);
   border-radius: 0;
 }
-.station-back-link:hover {
+.station-back-link:hover,
+.station-mode-toggle:hover {
   border-color: var(--editorial-paper);
   background: var(--editorial-paper);
   color: var(--editorial-ink);
@@ -5931,6 +5954,7 @@ body {
 .station-technical-head,
 .station-eyebrow,
 .station-back-link,
+.station-mode-toggle,
 .station-link,
 .line-strip-label,
 .contact-eyebrow,
@@ -7340,6 +7364,14 @@ body {
     background: rgba(6, 7, 8, 0.62);
   }
 
+  .station-mode-toggle {
+    top: max(12px, env(safe-area-inset-top)) !important;
+    right: max(12px, env(safe-area-inset-right)) !important;
+    height: 38px;
+    padding: 0 11px;
+    background: rgba(6, 7, 8, 0.62);
+  }
+
   .station-shell {
     align-items: stretch;
     justify-content: flex-end;
@@ -7437,56 +7469,78 @@ body {
   }
 }
 
-/* Readability pass: keep the glass mood, but make text panels legible. */
+/* Glass pass: real translucent glass over the station poster / the map, kept
+   legible with a strong backdrop blur + a soft tint + text shadows. */
 .station-glass-panel {
-  color: rgba(255, 255, 255, 0.94);
-  -webkit-backdrop-filter: blur(22px) saturate(1.2) brightness(1.05);
-  backdrop-filter: blur(22px) saturate(1.2) brightness(1.05);
-  background: linear-gradient(180deg, rgba(7, 8, 10, 0.85), rgba(7, 8, 10, 0.85)) !important;
-  border-top-color: rgba(255, 255, 255, 0.24);
-  box-shadow:
-    0 26px 76px rgba(0, 0, 0, 0.72),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.96);
+  -webkit-backdrop-filter: blur(32px) saturate(1.7) brightness(1.06);
+  backdrop-filter: blur(32px) saturate(1.7) brightness(1.06);
+  background:
+    linear-gradient(
+      157deg,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.03) 34%,
+      rgba(255, 255, 255, 0) 72%
+    ),
+    linear-gradient(180deg, rgba(10, 12, 16, 0.74), rgba(6, 8, 12, 0.86)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: none;
 }
 
 .station-glass-panel p,
 .station-glass-panel .station-lead,
 .recommendation-info p {
-  color: rgba(255, 255, 255, 0.86);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .station-glass-panel .station-lead,
 .station-content-title,
 .recommendation-info h3 {
-  color: rgba(255, 255, 255, 0.98);
+  color: rgba(255, 255, 255, 0.99);
+}
+
+.station-content-title {
+}
+
+.station-section,
+.station-media-heading {
 }
 
 .contact-panel {
-  color: rgba(255, 255, 255, 0.94);
-  background: rgba(18, 20, 26, 0.96);
-  border-color: rgba(255, 255, 255, 0.34);
-  box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.18),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 30px 90px rgba(0, 0, 0, 0.82);
+  color: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6) brightness(1.05);
+  backdrop-filter: blur(32px) saturate(1.6) brightness(1.05);
+  background:
+    linear-gradient(157deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, rgba(16, 18, 24, 0.5), rgba(10, 12, 18, 0.66));
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: none;
 }
 
 .contact-lead,
 .contact-field > span {
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .contact-field input,
 .contact-field textarea,
 .contact-chip {
-  background: rgba(255, 255, 255, 0.11);
-  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
+/* Mobile: the poster fills the screen behind the panel, so lean the glass a
+   touch denser to keep the long case-study text legible — still translucent. */
 @media (max-width: 768px) {
-  .station-glass-panel,
+  .station-glass-panel {
+    background:
+      linear-gradient(157deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0) 58%),
+      linear-gradient(180deg, rgba(8, 10, 14, 0.82), rgba(5, 7, 11, 0.92)) !important;
+  }
   .contact-panel {
-    background: rgba(7, 8, 10, 0.85) !important;
+    background:
+      linear-gradient(157deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0) 58%),
+      linear-gradient(180deg, rgba(14, 16, 22, 0.66), rgba(9, 11, 16, 0.78)) !important;
   }
 }
 
@@ -7513,8 +7567,10 @@ body {
 [data-map-theme="light"] .contact-panel {
   --contact-accent: #f4f2ea !important;
   color: #f4f2ea;
-  background: rgba(8, 9, 11, 0.97) !important;
-  border-color: rgba(244, 242, 234, 0.52);
+  background:
+    linear-gradient(157deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, rgba(16, 18, 24, 0.52), rgba(10, 12, 18, 0.66)) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
 }
 
 [data-map-theme="light"] .contact-title {
@@ -7637,4 +7693,371 @@ body {
   [data-map-theme="light"].map-dot-grid:before {
     animation: none;
   }
+}
+
+/* ============================================================================
+   Menu controls (theme / language / reading / 3D) grouped above the line list,
+   project-page header block, and glass on the remaining box components.
+   ============================================================================ */
+.map-menu-controls {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 5px;
+  width: 238px;
+  margin-bottom: 5px;
+}
+.map-menu-controls .map-language-tabs {
+  width: auto;
+  height: 30px;
+}
+.map-menu-controls > * {
+  flex: none;
+}
+.map-reading-btn,
+.map-mode-toggle {
+  color: #101112;
+  background: #f0ede4;
+  border: 1px solid #101112;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  cursor: pointer;
+  transition:
+    background 0.14s,
+    color 0.14s;
+}
+.map-reading-btn {
+  width: 30px;
+}
+.map-mode-toggle {
+  position: relative;
+  gap: 5px;
+  padding: 0 9px;
+  font:
+    600 10px/1 var(--font-mono, monospace);
+  letter-spacing: 0.12em;
+}
+.map-mode-info {
+  width: 12px;
+  height: 12px;
+  opacity: 0.6;
+}
+.map-reading-btn:hover,
+.map-reading-btn:focus-visible,
+.map-mode-toggle:hover,
+.map-mode-toggle:focus-visible {
+  color: #f0ede4;
+  background: #101112;
+  outline: none;
+}
+.map-mode-toggle.is-active {
+  color: #f0ede4;
+  background: #101112;
+}
+.map-reading-btn svg,
+.map-mode-toggle svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Dark map theme: glassy controls to match the translucent menu. */
+[data-map-theme="dark"] .map-reading-btn,
+[data-map-theme="dark"] .map-mode-toggle {
+  color: #e9edee;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.26);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  backdrop-filter: blur(18px) saturate(1.3);
+}
+[data-map-theme="dark"] .map-reading-btn:hover,
+[data-map-theme="dark"] .map-reading-btn:focus-visible,
+[data-map-theme="dark"] .map-mode-toggle:hover,
+[data-map-theme="dark"] .map-mode-toggle:focus-visible,
+[data-map-theme="dark"] .map-mode-toggle.is-active {
+  color: #0b0d10;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* Tooltip on every control button (language, theme, reading, 3D). */
+.map-menu-controls [data-tip] {
+  position: relative;
+}
+.map-menu-controls [data-tip]:hover::after,
+.map-menu-controls [data-tip]:focus-visible::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  width: max-content;
+  max-width: 216px;
+  padding: 7px 9px;
+  text-align: left;
+  font:
+    500 10.5px/1.35 var(--font-sans, sans-serif);
+  letter-spacing: 0;
+  text-transform: none;
+  color: #f4f2ea;
+  background: rgba(12, 14, 18, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: none;
+  z-index: 40;
+  pointer-events: none;
+}
+
+/* Project-page header: client / company / period / role in a glass strip. */
+.station-header {
+  display: flex;
+  flex-direction: column;
+  margin: -0.1rem 0 1.7rem;
+  padding: 0.2rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  backdrop-filter: blur(10px) saturate(1.4);
+}
+/* Each info on its own row, separated by a divider line. */
+.station-header-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  min-width: 0;
+  padding: 0.62rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
+}
+.station-header-item:first-child {
+  border-top: 0;
+}
+.station-header-item dt {
+  margin: 0;
+  font:
+    600 9.5px/1 var(--font-mono, monospace);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.55);
+}
+.station-header-item dd {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+/* Reading mode: compact meta line under each project title. */
+.reading-section-meta {
+  margin: 0.1rem 0 0.9rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+  opacity: 0.72;
+}
+
+/* Glass on the remaining boxes: recommendation cards + spotify frame. */
+.recommendation-card {
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  background: rgba(244, 242, 234, 0.07);
+}
+.recommendation-card:hover {
+  background: rgba(244, 242, 234, 0.13);
+}
+.spotify-embed {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+}
+
+/* ============================================================================
+   Glass menu: replace the solid cream "shield" with translucent glass in both
+   themes (kept legible with a strong blur + a firm tint over the busy map).
+   ============================================================================ */
+.map-line-list {
+  background: rgba(244, 242, 234, 0.36) !important;
+  -webkit-backdrop-filter: blur(46px) saturate(1.7) brightness(1.06);
+  backdrop-filter: blur(46px) saturate(1.7) brightness(1.06);
+  /* one single 1px border — no stacked outline/inset/pseudo layers */
+  border: 1px solid rgba(16, 17, 18, 0.3) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+.map-line-list:before {
+  content: none !important;
+}
+.map-line-list li + li {
+  border-top-color: rgba(16, 17, 18, 0.24) !important;
+}
+.map-line-card {
+  background: transparent !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.map-line-name {
+}
+[data-map-theme="dark"] .map-line-name {
+}
+
+/* Controls bar: uniform row aligned to the menu width, with translucent
+   "overlay" borders and a frosted-glass fill (kept opaque enough to avoid the
+   raw line bleed). Icons are forced per theme so the sun stays visible in dark. */
+.map-menu-controls {
+  align-items: center;
+  gap: 5px;
+  justify-content: space-between;
+}
+.map-menu-controls .map-language-tabs,
+.map-menu-controls .map-theme-toggle,
+.map-menu-controls .map-reading-btn,
+.map-menu-controls .map-mode-toggle {
+  height: 30px;
+  border: 1px solid rgba(16, 17, 18, 0.3) !important;
+  border-radius: 0 !important;
+  background: rgba(244, 242, 234, 0.86) !important;
+  color: #101112 !important;
+  -webkit-backdrop-filter: blur(26px) saturate(1.5) !important;
+  backdrop-filter: blur(26px) saturate(1.5) !important;
+  box-shadow: none !important;
+}
+/* No inner padding, so the selected tab fill reaches the top/bottom edges. */
+.map-menu-controls .map-language-tabs {
+  padding: 0 !important;
+  gap: 0 !important;
+  overflow: visible;
+}
+.map-menu-controls .map-mode-toggle {
+  font-size: 11px !important;
+}
+.map-menu-controls .map-theme-toggle svg,
+.map-menu-controls .map-reading-btn svg,
+.map-menu-controls .map-mode-toggle svg {
+  color: #101112 !important;
+  stroke: currentColor !important;
+}
+.map-menu-controls .map-language-tabs button {
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 11px !important;
+  font-size: 11px !important;
+  color: #101112 !important;
+  font-weight: 750 !important;
+  border-right: 1px solid rgba(16, 17, 18, 0.3) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.map-menu-controls .map-language-tabs button:last-child {
+  border-right: 0 !important;
+}
+/* SELECTED state: solid dark fill, inverted text/icon. */
+.map-menu-controls .map-language-tabs button[aria-pressed="true"],
+.map-menu-controls .map-mode-toggle.is-active {
+  background: rgba(16, 17, 18, 0.9) !important;
+  color: #f4f2ea !important;
+  box-shadow: none !important;
+}
+.map-menu-controls .map-mode-toggle.is-active svg {
+  color: #f4f2ea !important;
+}
+/* HOVER state: distinct — a light tint + darker outline, text stays ink. */
+.map-menu-controls .map-reading-btn:hover,
+.map-menu-controls .map-reading-btn:focus-visible,
+.map-menu-controls .map-theme-toggle:hover,
+.map-menu-controls .map-theme-toggle:focus-visible,
+.map-menu-controls .map-mode-toggle:not(.is-active):hover,
+.map-menu-controls .map-mode-toggle:not(.is-active):focus-visible,
+.map-menu-controls .map-language-tabs button:not([aria-pressed="true"]):hover {
+  background: rgba(16, 17, 18, 0.12) !important;
+  border-color: rgba(16, 17, 18, 0.6) !important;
+  color: #101112 !important;
+}
+
+/* Dark map theme: translucent frosted controls, light icons/text. */
+[data-map-theme="dark"] .map-menu-controls .map-language-tabs,
+[data-map-theme="dark"] .map-menu-controls .map-theme-toggle,
+[data-map-theme="dark"] .map-menu-controls .map-reading-btn,
+[data-map-theme="dark"] .map-menu-controls .map-mode-toggle {
+  background: rgba(22, 24, 30, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  color: #f4f6f7 !important;
+}
+[data-map-theme="dark"] .map-menu-controls .map-theme-toggle svg,
+[data-map-theme="dark"] .map-menu-controls .map-reading-btn svg,
+[data-map-theme="dark"] .map-menu-controls .map-mode-toggle svg {
+  color: #eef1f2 !important;
+}
+[data-map-theme="dark"] .map-menu-controls .map-language-tabs button {
+  color: #eef1f2 !important;
+  border-right-color: rgba(255, 255, 255, 0.22) !important;
+}
+/* Dark SELECTED: solid light fill, dark text/icon. */
+[data-map-theme="dark"] .map-menu-controls .map-language-tabs button[aria-pressed="true"],
+[data-map-theme="dark"] .map-menu-controls .map-mode-toggle.is-active {
+  background: rgba(238, 241, 242, 0.92) !important;
+  color: #16181e !important;
+}
+[data-map-theme="dark"] .map-menu-controls .map-mode-toggle.is-active svg {
+  color: #16181e !important;
+}
+/* Dark HOVER: distinct — subtle white tint + brighter outline, text stays light. */
+[data-map-theme="dark"] .map-menu-controls .map-reading-btn:hover,
+[data-map-theme="dark"] .map-menu-controls .map-reading-btn:focus-visible,
+[data-map-theme="dark"] .map-menu-controls .map-theme-toggle:hover,
+[data-map-theme="dark"] .map-menu-controls .map-theme-toggle:focus-visible,
+[data-map-theme="dark"] .map-menu-controls .map-mode-toggle:not(.is-active):hover,
+[data-map-theme="dark"] .map-menu-controls .map-mode-toggle:not(.is-active):focus-visible,
+[data-map-theme="dark"] .map-menu-controls .map-language-tabs button:not([aria-pressed="true"]):hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
+}
+
+/* Dark map theme: dark glass menu + light text. */
+[data-map-theme="dark"] .map-line-list {
+  background: rgba(13, 15, 19, 0.28) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+[data-map-theme="dark"] .map-line-list:before {
+  content: none !important;
+}
+[data-map-theme="dark"] .map-line-list li + li {
+  border-top-color: rgba(255, 255, 255, 0.16);
+}
+[data-map-theme="dark"] .map-line-name,
+[data-map-theme="dark"] .map-line-arrow {
+  color: #eef1f2;
+}
+
+/* Station top buttons (Map / 3D toggle): match the home control buttons —
+   frosted translucent fill + 1px translucent border, light text, subtle hover. */
+.station-back-link,
+.station-mode-toggle {
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 0 !important;
+  background: rgba(22, 24, 30, 0.72) !important;
+  color: #f4f6f7 !important;
+  -webkit-backdrop-filter: blur(26px) saturate(1.5) !important;
+  backdrop-filter: blur(26px) saturate(1.5) !important;
+  box-shadow: none !important;
+}
+.station-back-link svg,
+.station-mode-toggle svg {
+  color: currentColor !important;
+}
+.station-back-link:hover,
+.station-back-link:focus-visible,
+.station-mode-toggle:hover,
+.station-mode-toggle:focus-visible {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
 }

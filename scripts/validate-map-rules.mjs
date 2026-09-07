@@ -970,16 +970,16 @@ function validateVisualIdentity() {
   }
   if (
     !component.includes(
-      'const COLORED_LINE_IDS = new Set(["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8"])',
+      'const COLORED_LINE_IDS = new Set(["L1", "L2", "L3", "L4", "L5", "L7", "L8", "L9"])',
     ) ||
     !component.includes('return COLORED_LINE_IDS.has(line.id) ? line.color : "line-grey"')
   ) {
     fail(
       "line color hierarchy",
-      "Only the eight portfolio lines L1-L8 may keep color; every auxiliary line must render grey",
+      "Only the nine portfolio lines L1-L9 may keep color; every auxiliary line must render grey",
     );
   } else {
-    ok("only the portfolio lines L1-L8 use color; all auxiliary lines render grey");
+    ok("only the portfolio lines L1-L9 use color; all auxiliary lines render grey");
   }
   ok("station markers, transfer hubs, line strokes, and label layout match the visual rule set");
 }

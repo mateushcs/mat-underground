@@ -12,6 +12,7 @@ import { Analytics } from "@vercel/analytics/react";
 
 import appCss from "../styles.css?url";
 import { RouteTransitionProvider } from "@/components/RouteTransition";
+import { useViewMode } from "@/lib/viewMode";
 
 const SplatStage = lazy(() =>
   import("@/components/SplatStage").then((module) => ({ default: module.SplatStage })),
@@ -122,6 +123,16 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function SplatStageGate() {
+  const mode = useViewMode();
+  if (mode !== "3d") return null;
+  return (
+    <Suspense fallback={null}>
+      <SplatStage />
+    </Suspense>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -129,10 +140,9 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <RouteTransitionProvider>
         {/* Persistent 3D layer: every station's splat preloaded on the GPU, so a
-            station's scene is already live the instant the route doors open. */}
-        <Suspense fallback={null}>
-          <SplatStage />
-        </Suspense>
+            station's scene is already live the instant the route doors open.
+            Mounted only in 3D mode — lite mode never touches WebGL. */}
+        <SplatStageGate />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </RouteTransitionProvider>

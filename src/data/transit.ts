@@ -173,10 +173,12 @@ const RAW_LINES: RawLine[] = [
     ],
   },
   {
+    // Former "Recomendacoes" portfolio line. Its page merged into Créditos (L7),
+    // so it now renders as a grey auxiliary line (kept for map topology/transfers).
     id: "L6",
-    name: "Recomendacoes",
+    name: "Ludus",
     shortName: "06",
-    color: "line-pink",
+    color: "line-grey",
     kind: "metro",
     pts: [
       [419.34, 1059],
@@ -212,13 +214,14 @@ const RAW_LINES: RawLine[] = [
     ],
   },
   {
+    // Tour House (OBT) — current job, promoted from the old grey "Aether" route
+    // to a coloured portfolio line. Geometry unchanged (already validated), now a
+    // solid metro line in teal.
     id: "L9",
-    name: "Aether",
+    name: "Tour House",
     shortName: "09",
-    color: "line-grey",
-    kind: "regional",
-    dashed: true,
-    weight: 3.0,
+    color: "line-teal",
+    kind: "metro",
     pts: [
       [1857.34, 1080],
       [1857.34, 453],
@@ -1090,6 +1093,7 @@ const stationLabelAngleOverrides = new Map<string, Station["labelAngle"]>([
 // the crowded inside of the turn; flip them to the open outside of the bend.
 const stationLabelSideOverrides = new Map<string, 1 | -1>([
   ["s20", 1], // Nox: squeezed between the L2 corner and the Pax interchange
+  ["x137", -1], // Numerus (L5+CR16): default side lands on Tour House (L9); flip it off the stroke
 ]);
 // Manual nudges (kept exactly on the line) for the rare auto stop that lands
 // too near a corner/interchange to spacing- and label-clear cleanly.
