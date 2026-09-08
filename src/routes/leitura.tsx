@@ -164,7 +164,16 @@ function ReadingMode() {
                   const [src, alt] = paragraph.slice(6, -2).split("|");
                   return (
                     <figure key={i} className="reading-photo">
-                      <img src={src} alt={alt ?? ""} loading="lazy" />
+                      <img
+                        src={src}
+                        alt={alt ?? ""}
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          const fig = e.currentTarget.closest("figure");
+                          if (fig) fig.style.display = "none";
+                        }}
+                      />
                     </figure>
                   );
                 }

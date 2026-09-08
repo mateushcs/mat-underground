@@ -2,16 +2,12 @@ export type MapTheme = "dark" | "light";
 
 const STORAGE_KEY = "mapTheme";
 
-export function getSystemTheme(): MapTheme {
-  if (typeof window === "undefined") return "light";
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
 export function getStoredTheme(): MapTheme {
-  if (typeof window === "undefined") return "light";
+  if (typeof window === "undefined") return "dark";
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (stored === "light" || stored === "dark") return stored;
-  return getSystemTheme();
+  // Default to dark; the visitor's toggle choice is remembered from then on.
+  return "dark";
 }
 
 export function setStoredTheme(theme: MapTheme) {

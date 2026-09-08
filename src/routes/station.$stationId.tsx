@@ -1,5 +1,5 @@
 ﻿import { createFileRoute, notFound } from "@tanstack/react-router";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Maximize2, Minimize2 } from "lucide-react";
 import { Fragment, lazy, Suspense, useEffect, useState, type CSSProperties } from "react";
 import { useRouteTransition } from "@/components/RouteTransition";
 import {
@@ -74,7 +74,14 @@ function StationDetail({ station }: { station: PortfolioStation }) {
   // In 3D mode the poster still covers the stage until the splat reports ready,
   // so switching modes never flashes the empty dark backdrop.
   const [stageReady, setStageReady] = useState(false);
+  // In 3D mode the visitor can minimize the text panel to explore the scene.
+  const [panelHidden, setPanelHidden] = useState(false);
   const { go } = useRouteTransition();
+
+  // Leaving 3D always brings the text back; lite mode has nothing to explore.
+  useEffect(() => {
+    if (mode !== "3d") setPanelHidden(false);
+  }, [mode]);
 
   useEffect(() => {
     const stored = getStoredLanguage();
@@ -202,8 +209,25 @@ function StationDetail({ station }: { station: PortfolioStation }) {
         <span className="station-mode-toggle-short">{MODE_TOGGLE_LABELS[lang][mode].short}</span>
       </button>
 
-      <section className="station-shell">
+      <section className={`station-shell${mode === "3d" && panelHidden ? " is-panel-hidden" : ""}`}>
         <article className="station-glass-panel">
+          {mode === "3d" && (
+            <div className="station-panel-tools">
+              <button
+                type="button"
+                className="station-panel-min"
+                onClick={() => setPanelHidden(true)}
+                aria-label={
+                  lang === "en"
+                    ? "Minimize the text to explore the 3D"
+                    : "Minimizar o texto para explorar o 3D"
+                }
+                title={lang === "en" ? "Minimize" : "Minimizar"}
+              >
+                <Minimize2 className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          )}
           <h1 className="station-content-title">{copy?.title}</h1>
           {copy?.header && (
             <dl className="station-header">
@@ -239,7 +263,16 @@ function StationDetail({ station }: { station: PortfolioStation }) {
               const [src, alt] = paragraph.slice(6, -2).split("|");
               return (
                 <figure key={i} className="station-photo">
-                  <img src={src} alt={alt ?? ""} loading="lazy" decoding="async" />
+                  <img
+                    src={src}
+                    alt={alt ?? ""}
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => {
+                      const fig = e.currentTarget.closest("figure");
+                      if (fig) fig.style.display = "none";
+                    }}
+                  />
                 </figure>
               );
             }
@@ -283,6 +316,18 @@ function StationDetail({ station }: { station: PortfolioStation }) {
           )}
         </article>
       </section>
+
+      {mode === "3d" && panelHidden && (
+        <button
+          type="button"
+          onClick={() => setPanelHidden(false)}
+          className="station-panel-restore"
+          aria-label={lang === "en" ? "Show the text again" : "Mostrar o texto de novo"}
+        >
+          <Maximize2 className="h-4 w-4" aria-hidden="true" />
+          <span>{lang === "en" ? "Text" : "Texto"}</span>
+        </button>
+      )}
     </main>
   );
 }

@@ -3399,7 +3399,7 @@
   transform: translate(3px);
 }
 .map-language-tabs {
-  -webkit-backdrop-filter: blur(26px) saturate(1.65) contrast(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.65) contrast(1.08);
   background: linear-gradient(#ffffff1f, #0000 48%), #080d1157;
   border: 1px solid #ebf4f63d;
   border-radius: 999px;
@@ -3463,7 +3463,7 @@
   color: var(--map-card-ink);
   text-align: left;
   cursor: pointer;
-  -webkit-backdrop-filter: blur(20px) saturate(1.35) brightness(1.05);
+  -webkit-backdrop-filter: blur(16px) saturate(1.35) brightness(1.05);
   background: #b8cfd61a;
   border: 1px solid #e7f4f740;
   border-radius: 7px;
@@ -3784,7 +3784,7 @@
 }
 .station-glass-panel {
   color: #ffffffb8;
-  -webkit-backdrop-filter: blur(30px) saturate(1.6) brightness(1.14);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6) brightness(1.14);
   background: linear-gradient(#ffffff1f, #ffffff05 44%, #0000 80%), #1012166b;
   border: 1px solid #ffffff1f;
   border-radius: 24px;
@@ -4711,7 +4711,7 @@ html[data-route-reveal="glitch"]::view-transition-new(root) {
   left: 50%;
   bottom: max(18px, env(safe-area-inset-bottom));
   z-index: 12;
-  -webkit-backdrop-filter: blur(22px) saturate(1.5) brightness(1.12);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5) brightness(1.12);
   background: linear-gradient(#ffffff1a, #ffffff05 40%, #0000 76%), #0a0c1075;
   border: 1px solid #ffffff24;
   border-radius: 18px;
@@ -4800,7 +4800,7 @@ html[data-route-reveal="glitch"]::view-transition-new(root) {
   padding-left: 4px;
 }
 .fx-lab-panel {
-  -webkit-backdrop-filter: blur(26px) saturate(1.5) brightness(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5) brightness(1.1);
   background: linear-gradient(#ffffff17, #0000 46%), #0a0c10a8;
   border: 1px solid #ffffff24;
   border-radius: 16px;
@@ -4906,7 +4906,7 @@ html[data-route-reveal="glitch"]::view-transition-new(root) {
 }
 .contact-panel {
   --contact-accent: #8a78a8;
-  -webkit-backdrop-filter: blur(34px) saturate(1.7);
+  -webkit-backdrop-filter: blur(16px) saturate(1.7);
   color: #ffffffdb;
   background: #12141a80;
   border: 1px solid #ffffff24;
@@ -7473,8 +7473,8 @@ body {
    legible with a strong backdrop blur + a soft tint + text shadows. */
 .station-glass-panel {
   color: rgba(255, 255, 255, 0.96);
-  -webkit-backdrop-filter: blur(32px) saturate(1.7) brightness(1.06);
-  backdrop-filter: blur(32px) saturate(1.7) brightness(1.06);
+  -webkit-backdrop-filter: blur(16px) saturate(1.7) brightness(1.06);
+  backdrop-filter: blur(16px) saturate(1.7) brightness(1.06);
   background:
     linear-gradient(
       157deg,
@@ -7508,8 +7508,8 @@ body {
 
 .contact-panel {
   color: rgba(255, 255, 255, 0.95);
-  -webkit-backdrop-filter: blur(32px) saturate(1.6) brightness(1.05);
-  backdrop-filter: blur(32px) saturate(1.6) brightness(1.05);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6) brightness(1.05);
+  backdrop-filter: blur(16px) saturate(1.6) brightness(1.05);
   background:
     linear-gradient(157deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 55%),
     linear-gradient(180deg, rgba(16, 18, 24, 0.5), rgba(10, 12, 18, 0.66));
@@ -7739,11 +7739,6 @@ body {
     600 10px/1 var(--font-mono, monospace);
   letter-spacing: 0.12em;
 }
-.map-mode-info {
-  width: 12px;
-  height: 12px;
-  opacity: 0.6;
-}
 .map-reading-btn:hover,
 .map-reading-btn:focus-visible,
 .map-mode-toggle:hover,
@@ -7882,8 +7877,8 @@ body {
    ============================================================================ */
 .map-line-list {
   background: rgba(244, 242, 234, 0.36) !important;
-  -webkit-backdrop-filter: blur(46px) saturate(1.7) brightness(1.06);
-  backdrop-filter: blur(46px) saturate(1.7) brightness(1.06);
+  -webkit-backdrop-filter: blur(16px) saturate(1.7) brightness(1.06);
+  backdrop-filter: blur(16px) saturate(1.7) brightness(1.06);
   /* one single 1px border — no stacked outline/inset/pseudo layers */
   border: 1px solid rgba(16, 17, 18, 0.3) !important;
   outline: none !important;
@@ -7922,8 +7917,8 @@ body {
   border-radius: 0 !important;
   background: rgba(244, 242, 234, 0.86) !important;
   color: #101112 !important;
-  -webkit-backdrop-filter: blur(26px) saturate(1.5) !important;
-  backdrop-filter: blur(26px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.5) !important;
+  backdrop-filter: blur(16px) saturate(1.5) !important;
   box-shadow: none !important;
 }
 /* No inner padding, so the selected tab fill reaches the top/bottom edges. */
@@ -8045,8 +8040,8 @@ body {
   border-radius: 0 !important;
   background: rgba(22, 24, 30, 0.72) !important;
   color: #f4f6f7 !important;
-  -webkit-backdrop-filter: blur(26px) saturate(1.5) !important;
-  backdrop-filter: blur(26px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.5) !important;
+  backdrop-filter: blur(16px) saturate(1.5) !important;
   box-shadow: none !important;
 }
 .station-back-link svg,
@@ -8060,4 +8055,94 @@ body {
   background: rgba(255, 255, 255, 0.16) !important;
   border-color: rgba(255, 255, 255, 0.5) !important;
   color: #ffffff !important;
+}
+
+/* 3D mode: let the visitor minimize the text panel to explore the scene, and a
+   floating control to bring it back. Mobile panel grows to ~75svh for reading. */
+.station-panel-tools {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: flex-end;
+  margin: -0.6rem -0.6rem 0.35rem 0;
+  pointer-events: none;
+}
+.station-panel-min {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: #f4f6f7;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(22, 24, 30, 0.72);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+.station-panel-min:hover,
+.station-panel-min:focus-visible {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+}
+
+/* Minimize is a mobile-only affordance: on desktop the panel already sits to
+   one side, so the scene is visible without hiding the text. */
+@media (min-width: 769px) {
+  .station-panel-tools,
+  .station-panel-restore {
+    display: none !important;
+  }
+}
+@media (max-width: 768px) {
+  .station-shell.is-panel-hidden {
+    display: none;
+  }
+}
+
+.station-panel-restore {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 40px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #f4f6f7;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(22, 24, 30, 0.72);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+.station-panel-restore:hover,
+.station-panel-restore:focus-visible {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .station-glass-panel {
+    max-height: min(
+      75svh,
+      calc(100svh - 76px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
+    );
+  }
 }

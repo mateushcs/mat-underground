@@ -210,24 +210,24 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
   L1: {
     pt: {
       title: "Sobre mim",
-      role: "Product designer & manager — Fortaleza",
+      role: "Product designer & manager · Fortaleza",
       body: [
-        "oie! hi! 你好 ！me chamo mateus (mas prefiro mat!) e sou um designer & manager de produto aqui de fortalcity (e do resto do mundo, se for remoto!).",
-        "tenho mais de 5 anos desenhando produtos digitais /do discovery até a entrega/. gosto de transformar dados, desejos e destinos (os DDD) em produtos, sempre equilibrando a estratégia, negócios e a visão do usuário e com muito bom humor! ha!",
-        "em números: construí do zero um Design System com +30 componentes, entreguei +80 features em +80 sprints e conduzi +10 processos de discovery com usuários. tudo em SaaS B2B complexo, da pesquisa ao handoff.",
-        "tenho também experiência como Product Manager em projetos que demandam relacionamento direto com clientes, escrita de histórias de usuário, priorização de roadmap e análise de dados.",
-        "já trabalhei em SaaS B2B, Agritech, Healthtech e inovação aberta, e cada setor me ensinou algo diferente. também sou produtor musical nas horas vagas!",
+        "oiê! hi! 你好！eu sou o mateus, mas pode me chamar de mat. eu trabalho com design e gestão de produto aqui de fortalcity, e do resto do mundo também quando dá pra ser remoto.",
+        "já faz mais de cinco anos que eu venho desenhando produto digital de ponta a ponta, desde o discovery até o handoff pros devs. o que eu mais gosto é de pegar os dados, os desejos e os destinos das pessoas e transformar tudo isso em produto, tentando sempre equilibrar a estratégia, o negócio e o lado de quem vai usar. e faço isso de bom humor, sempre.",
+        "na neo ventures, por exemplo, eu redesenhei um design system do zero, com mais de 30 componentes, e ao longo desses anos entreguei mais de 80 features em mais de 80 sprints, sempre partindo de conversas de discovery com usuário. era tudo SaaS B2B bem complexo, e eu tocava o processo inteiro, da pesquisa até o handoff.",
+        "também já trabalhei como product manager, escrevendo as histórias de usuário, priorizando o roadmap, olhando os dados e cuidando do relacionamento direto com o cliente.",
+        "nesses anos eu passei por SaaS B2B, agritech, healthtech e inovação aberta, e cada área me ensinou uma coisa diferente. ah, e quando sobra um tempo, eu também produzo música.",
       ],
     },
     en: {
       title: "About me",
-      role: "Product designer & manager — Fortaleza",
+      role: "Product designer & manager · Fortaleza",
       body: [
-        "oie! hi! 你好! i'm mateus (but i prefer mat!), a product designer & manager from fortalcity — and the rest of the world, if it's remote!",
-        "i've spent 5+ years designing digital products, from discovery to delivery. i like turning data, desires and directions (the three Ds) into products, always balancing strategy, business and the user's view — and with plenty of good humor! ha!",
-        "in numbers: i built a Design System from scratch with 30+ components, shipped 80+ features across 80+ sprints and ran 10+ discovery processes with users. all in complex B2B SaaS, from research to handoff.",
-        "i also work as a Product Manager on client-facing projects: writing user stories, prioritizing roadmaps and reading product data.",
-        "i've worked across B2B SaaS, agritech, healthtech and open innovation, and each field taught me something different. i also produce music in my spare time!",
+        "oiê! hi! 你好! i'm mateus, but you can call me mat. i work with product design and product management here in fortalcity, and anywhere else too when it can be remote.",
+        "i've been designing digital products end to end for more than five years now, from discovery all the way to the handoff to the devs. what i enjoy the most is taking people's data, desires and destinations and turning all of that into a product, always trying to balance the strategy, the business and the side of whoever is going to use it. and i do it in a good mood, always.",
+        "at neo ventures, for example, i redesigned a design system from scratch, with more than 30 components, and over those years i shipped more than 80 features across more than 80 sprints, always starting from discovery conversations with users. it was all fairly complex B2B SaaS, and i ran the whole process, from research to handoff.",
+        "i've also worked as a product manager, writing the user stories, prioritizing the roadmap, looking at the data and taking care of the direct relationship with the client.",
+        "over these years i've been through B2B SaaS, agritech, healthtech and open innovation, and each area taught me something different. oh, and when i have some spare time, i also make music.",
       ],
     },
   },
@@ -235,7 +235,7 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
   L2: {
     pt: {
       title: "Uptime Center",
-      role: "Tracbel — monitoramento preditivo",
+      role: "Tracbel · monitoramento preditivo",
       header: {
         company: "Neo Ventures",
         client: "Tracbel",
@@ -244,22 +244,24 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
       },
       body: [
         "## Contexto",
-        "A Tracbel queria usar a telemetria das frotas para automatizar a identificação e a notificação de manutenções. O Uptime Center faz monitoramento preditivo, diagnóstico remoto e planejamento de serviço para equipamentos multimarca (Volvo, Tigercat e outros), servindo perfis bem diferentes ao mesmo tempo: especialista técnico, coordenador, gestor e técnico de campo.",
-        "Entrei como único designer numa squad com PM, 3 devs e stakeholders da Tracbel. Lançado na Agrishow 2023.",
+        "A Tracbel queria usar a telemetria das frotas pra automatizar a identificação e a notificação das manutenções. O Uptime Center faz monitoramento preditivo, diagnóstico remoto e planejamento de serviço pra equipamentos de várias marcas (Volvo, Tigercat e outras), e atende perfis bem diferentes ao mesmo tempo: o especialista técnico, o coordenador, o gestor e o técnico de campo.",
+        "Entrei como único designer numa squad com PM, 3 devs e os stakeholders da Tracbel, e a gente lançou o produto na Agrishow de 2023.",
         "[[img:/case-studies/uptime-login.png|Tela de login do Uptime Center]]",
+        "## Desafio",
+        "A equipe de pós-venda monitorava frotas inteiras, de várias marcas, tudo na mão. O sistema precisava mostrar o que exige ação agora e o que pode esperar, de forma que perfis bem diferentes, do especialista técnico ao técnico de campo, conseguissem ler a mesma tela sem dificuldade. E era muita superfície pra um designer só dar conta: análise de óleo, monitoramento das máquinas, dashboards e integrações, tudo precisando de consistência.",
         "## Ações",
-        "Conduzi o discovery com consultores, gestores, técnicos e mecânicos para entender como a equipe priorizava alertas na prática — o fluxo real, as exceções e onde o sistema podia apoiar.",
-        "Construí o Design System em paralelo ao produto: componentes que funcionam para múltiplas marcas e em diferentes telas, do desktop do escritório ao tablet no campo. Trabalhei lado a lado com os devs no handoff, alinhando o comportamento de cada componente em tempo real.",
+        "Toquei o discovery com consultores, gestores, técnicos e mecânicos pra entender como a equipe priorizava os alertas no dia a dia, quais eram as exceções e onde o sistema podia dar uma mão.",
+        "A partir disso, montei um design system adaptado a partir de uma biblioteca que já existia e fui evoluindo ele junto com o produto ao longo de mais de 14 sprints. Desenhei bastante coisa: as regras pra análise de óleo, o monitoramento das máquinas num mapa ao vivo, os alertas por severidade, os dashboards, o planejamento de serviço e a integração com o SAP e outros sistemas, com componentes que funcionam pra várias marcas e em telas diferentes, do desktop do escritório até o tablet no campo. Trabalhei lado a lado com os devs no handoff, alinhando o comportamento de cada componente na hora.",
         "[[img:/case-studies/uptime-control-room.png|Central de operação da Tracbel]]",
         "## Resultados e conclusões",
-        "O Uptime Center entrou na operação de pós-venda da Tracbel: alertas por severidade, diagnóstico remoto, planejamento de serviço e visão de frota multimarca numa interface coesa.",
-        "Ser o único designer da squad me obrigou a ser o ponto de conexão entre produto, negócio e engenharia — decidir rápido, comunicar melhor e sustentar a fidelidade entre protótipo e produto final.",
+        "O Uptime Center entrou na operação de pós-venda da Tracbel, com alertas por severidade, diagnóstico remoto, monitoramento das máquinas no mapa, dashboards e planejamento de serviço numa interface só.",
+        "Ser o único designer da squad me obrigou a ser o ponto de conexão entre produto, negócio e os devs, a decidir rápido, comunicar melhor e segurar a fidelidade entre o protótipo e o produto final.",
         "[[img:/case-studies/uptime-signage.png|Placa Uptime Center sobre os monitores]]",
       ],
     },
     en: {
       title: "Uptime Center",
-      role: "Tracbel — predictive monitoring",
+      role: "Tracbel · predictive monitoring",
       header: {
         company: "Neo Ventures",
         client: "Tracbel",
@@ -268,16 +270,18 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
       },
       body: [
         "## Context",
-        "Tracbel wanted to use fleet telemetry to automate the identification and notification of maintenance. Uptime Center handles predictive monitoring, remote diagnostics and service planning for multi-brand equipment (Volvo, Tigercat and others), serving very different profiles at once: technical specialist, coordinator, manager and field technician.",
-        "I joined as the only designer in a squad with a PM, 3 devs and Tracbel stakeholders. Launched at Agrishow 2023.",
+        "Tracbel wanted to use fleet telemetry to automate spotting and flagging maintenance. Uptime Center does predictive monitoring, remote diagnostics and service planning for multi-brand equipment (Volvo, Tigercat and others), and it serves very different profiles at the same time: the technical specialist, the coordinator, the manager and the field technician.",
+        "I came in as the only designer in a squad with a PM, 3 devs and the Tracbel stakeholders, and we launched the product at Agrishow 2023.",
         "[[img:/case-studies/uptime-login.png|Uptime Center login screen]]",
+        "## Challenge",
+        "The after-sales team monitored whole fleets, across many brands, all by hand. The system had to show what needs action now and what can wait, so that very different profiles, from the technical specialist to the field technician, could read the same screen without trouble. And it was a lot of surface for a single designer to cover: oil analysis, machine monitoring, dashboards and integrations, all needing to stay consistent.",
         "## Actions",
-        "I ran discovery with consultants, managers, technicians and mechanics to understand how the team prioritized alerts in practice — the real flow, the exceptions and where the system could help.",
-        "I built the Design System alongside the product: components that work across multiple brands and screen sizes, from the office desktop to the field tablet. I worked next to the devs on handoff, aligning each component's behavior in real time.",
+        "I ran discovery with consultants, managers, technicians and mechanics to understand how the team prioritized alerts day to day, what the exceptions were, and where the system could help.",
+        "From there, I put together a design system adapted from an existing library and grew it alongside the product across 14+ sprints. I designed a lot of it: the rules for oil analysis, live machine monitoring on a map, severity-based alerts, dashboards, service planning and the integration with SAP and other systems, with components that work across brands and screen sizes, from the office desktop to the field tablet. I worked side by side with the devs on the handoff, aligning each component's behaviour on the spot.",
         "[[img:/case-studies/uptime-control-room.png|Tracbel operations room]]",
         "## Results and takeaways",
-        "Uptime Center became part of Tracbel's after-sales operation: severity-based alerts, remote diagnostics, service planning and a multi-brand fleet view in one coherent interface.",
-        "Being the only designer in the squad forced me to be the connection point between product, business and engineering — deciding faster, communicating better and holding fidelity between prototype and final product.",
+        "Uptime Center became part of Tracbel's after-sales operation, with severity-based alerts, remote diagnostics, machine monitoring on the map, dashboards and service planning in a single interface.",
+        "Being the only designer in the squad forced me to be the connection point between product, business and the devs, to decide faster, communicate better and hold the fidelity between prototype and final product.",
         "[[img:/case-studies/uptime-signage.png|Uptime Center signage above the team monitors]]",
       ],
     },
@@ -286,7 +290,7 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
   L3: {
     pt: {
       title: "Solv",
-      role: "Neo Ventures — SaaS B2B de inovação",
+      role: "Neo Ventures · SaaS B2B de inovação",
       header: {
         company: "Neo Ventures",
         period: "36 meses",
@@ -294,17 +298,19 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
       },
       body: [
         "## Contexto",
-        "O Solv começou como software de inovação aberta (formulários, triagem de startups, white label) e virou uma plataforma que cobre inovação interna, portfólio de projetos, melhoria contínua e um copiloto de IA. O produto cresceu, mas a experiência não acompanhou: funcionava para quem já conhecia os caminhos, e travava para quem chegava novo ou para o cliente que queria enxergar valor estratégico.",
+        "O Solv começou como um software de inovação aberta (formulários, triagem de startups, white label) e foi virando uma plataforma que cobre inovação interna, portfólio de projetos, melhoria contínua e até um copiloto de IA. O produto cresceu bastante, mas a experiência não acompanhou: quem já conhecia os caminhos se virava, e quem chegava novo, ou o cliente que queria enxergar o valor estratégico, acabava se perdendo no meio do caminho.",
+        "## Desafio",
+        "Fazer um monte de feature, tipo de cliente e cenário andarem em harmonia pra usuários bem diferentes, preservando quem já dependia do produto no dia a dia. E eu acumulava dois papéis ao mesmo tempo: era o designer do redesign e o product manager que decidia o que entrava no roadmap.",
         "## Ações",
-        "Conduzi o redesign de ponta a ponta e gerenciei o produto em paralelo: escrevi histórias de usuário, critérios de aceite e regras de negócio, aliei roadmap com a liderança e toquei o relacionamento direto com clientes nas validações. O desafio era fazer inúmeras features, tipos de cliente e cenários andarem em harmonia para usuários muito diferentes.",
-        "Ao longo da Neo Ventures: +150 protótipos funcionais, +80 features e +60 épicos em +80 sprints. Construí do zero o Design System (+30 componentes, tokens e guidelines) e conduzi +10 processos de discovery com usuários e 5 design sprints.",
+        "Conduzi o redesign de ponta a ponta e gerenciei o produto em paralelo. Escrevi as histórias de usuário, os critérios de aceite e as regras de negócio, alinhei o roadmap com a liderança e toquei o relacionamento direto com os clientes nas validações.",
+        "Ao longo desses anos na Neo Ventures foram mais de 150 protótipos funcionais, mais de 80 features e mais de 60 épicos em mais de 80 sprints. Construí o design system do zero, com mais de 30 componentes, tokens e guidelines, e conduzi mais de 10 discoveries com usuários e 5 design sprints.",
         "## Resultados e conclusões",
-        "O Solv é hoje referência em gestão da inovação, usado por clientes como Samarco, Nexa, Andrade Gutierrez, Vale e CCEE. O Design System acelerou o ciclo de entrega de novas features e eliminou a inconsistência visual acumulada ao longo dos anos.",
+        "Hoje o Solv é referência em gestão da inovação, usado por clientes como Samarco, Nexa, Andrade Gutierrez, Vale e CCEE. O design system acelerou muito o ciclo de entrega de novas features e resolveu a inconsistência visual que tinha se acumulado ao longo dos anos.",
       ],
     },
     en: {
       title: "Solv",
-      role: "Neo Ventures — B2B innovation SaaS",
+      role: "Neo Ventures · B2B innovation SaaS",
       header: {
         company: "Neo Ventures",
         period: "36 months",
@@ -312,12 +318,14 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
       },
       body: [
         "## Context",
-        "Solv started as open-innovation software (forms, startup screening, white label) and became a platform covering internal innovation, project portfolios, continuous improvement and an AI copilot. The product grew but the experience didn't keep up: it worked for people who knew its paths and stalled for newcomers or for the client trying to see strategic value.",
+        "Solv started as open-innovation software (forms, startup screening, white label) and grew into a platform that covers internal innovation, project portfolios, continuous improvement and even an AI copilot. The product grew a lot, but the experience didn't keep up: people who already knew the paths got by, while newcomers, or the client trying to see the strategic value, ended up getting lost along the way.",
+        "## Challenge",
+        "Getting a ton of features, client types and scenarios to move in harmony for very different users, while keeping the people who already depended on the product day to day. And I wore two hats at once: I was the designer of the redesign and the product manager deciding what made the roadmap.",
         "## Actions",
-        "I led the end-to-end redesign and managed the product in parallel: I wrote user stories, acceptance criteria and business rules, aligned the roadmap with leadership and ran direct client relationships during validations. The challenge was making countless features, client types and scenarios move in harmony for very different users.",
-        "Across Neo Ventures: 150+ functional prototypes, 80+ features and 60+ epics in 80+ sprints. I built the Design System from scratch (30+ components, tokens and guidelines) and ran 10+ discovery processes with users plus 5 design sprints.",
+        "I led the redesign end to end and managed the product in parallel. I wrote the user stories, the acceptance criteria and the business rules, aligned the roadmap with leadership and ran the direct client relationships during validations.",
+        "Over those years at Neo Ventures it was more than 150 functional prototypes, 80+ features and 60+ epics across 80+ sprints. I built the design system from scratch, with 30+ components, tokens and guidelines, and ran 10+ discoveries with users plus 5 design sprints.",
         "## Results and takeaways",
-        "Solv is now a reference in innovation management, used by clients such as Samarco, Nexa, Andrade Gutierrez, Vale and CCEE. The Design System accelerated the delivery cycle of new features and eliminated the visual inconsistency that had piled up over the years.",
+        "Today Solv is a reference in innovation management, used by clients like Samarco, Nexa, Andrade Gutierrez, Vale and CCEE. The design system sped up the delivery cycle for new features a lot and fixed the visual inconsistency that had piled up over the years.",
       ],
     },
   },
@@ -325,7 +333,7 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
   L4: {
     pt: {
       title: "Terapio",
-      role: "Healthtech — TIM AWC",
+      role: "Healthtech · TIM AWC",
       header: {
         company: "Terapio · aceleração TIM AWC",
         period: "7 meses",
@@ -333,12 +341,12 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
       },
       body: [
         "## Contexto",
-        "Em 2021 entrei no programa de aceleração TIM AWC com o Terapio, uma healthtech de fisioterapia. A proposta era conectar pacientes e fisioterapeutas por telemedicina e ajudar quem precisava continuar o tratamento em casa, fora do consultório. Fui responsável pelo design do produto do começo ao fim.",
+        "Em 2021 entrei no programa de aceleração da TIM AWC com o Terapio, uma healthtech de fisioterapia. A ideia era conectar pacientes e fisioterapeutas por telemedicina e ajudar quem precisava continuar o tratamento em casa, longe do consultório. Fui o responsável pelo design do produto do começo ao fim.",
         "## Ações",
-        "Conduzi +15 entrevistas com pacientes e fisioterapeutas. Do lado do paciente, a maioria não fazia os exercícios em casa (esquecimento, rotina, insegurança de se machucar sozinho); do lado do terapeuta, ajustar um plano no meio da semana era lento. Nos testes, vídeos davam confiança, mas era difícil segurar o celular e se exercitar ao mesmo tempo.",
-        "A partir disso: projetei um sistema de lembretes encaixado na rotina de cada paciente; redesenhei o player de vídeo para alternar entre assistir e executar sem segurar o celular (controles acessíveis, progresso visível em tela pequena); e simplifiquei o painel do fisioterapeuta, transformando vários passos numa edição direta. Ao todo, +25 interfaces em +28 sprints.",
+        "Conduzi mais de 15 entrevistas com pacientes e fisioterapeutas. Do lado do paciente, a maioria não fazia os exercícios em casa, seja por esquecimento, pela correria da rotina ou pela insegurança de se machucar sozinho; do lado do terapeuta, ajustar um plano no meio da semana era lento demais. Nos testes, os vídeos davam confiança, mas segurar o celular e se exercitar ao mesmo tempo era complicado.",
+        "A partir daí, projetei um sistema de lembretes que se encaixava na rotina de cada paciente, redesenhei o player de vídeo pra alternar entre assistir e executar sem precisar segurar o celular (com controles acessíveis e o progresso visível numa tela pequena) e simplifiquei o painel do fisioterapeuta, transformando vários passos numa edição direta. No total foram mais de 25 interfaces em mais de 28 sprints.",
         "## Resultados e conclusões",
-        "Saímos com identidade visual própria, fluxos validados com usuários e protótipo em alta fidelidade dentro do prazo da aceleração — e o projeto foi selecionado pela Unimed. Aprendi que, quando o usuário tem dor, mobilidade limitada ou baixa energia, a interface precisa trabalhar por ele: muitos só usavam o celular com uma mão, ou sem lugar pra apoiar enquanto se exercitavam.",
+        "Saímos da aceleração com identidade visual própria, fluxos validados com usuários e um protótipo em alta fidelidade dentro do prazo, e o projeto ainda foi selecionado pela Unimed. Aprendi que, quando o usuário tá com dor, mobilidade limitada ou pouca energia, a interface precisa trabalhar por ele: muita gente só conseguia usar o celular com uma mão, ou não tinha onde apoiar o aparelho enquanto se exercitava.",
       ],
       links: [
         {
@@ -357,7 +365,7 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
     },
     en: {
       title: "Terapio",
-      role: "Healthtech — TIM AWC",
+      role: "Healthtech · TIM AWC",
       header: {
         company: "Terapio · TIM AWC accelerator",
         period: "7 months",
@@ -365,12 +373,12 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
       },
       body: [
         "## Context",
-        "In 2021 I joined the TIM AWC acceleration program with Terapio, a physiotherapy healthtech. The idea was to connect patients and physiotherapists via telemedicine and help those who needed to keep treatment going at home, away from the clinic. I owned product design from start to finish.",
+        "In 2021 I joined the TIM AWC acceleration program with Terapio, a physiotherapy healthtech. The idea was to connect patients and physiotherapists over telemedicine and help the people who needed to keep their treatment going at home, away from the clinic. I owned the product design from start to finish.",
         "## Actions",
-        "I ran 15+ interviews with patients and physiotherapists. On the patient side, most didn't exercise at home (forgetting, routine, fear of getting hurt alone); on the therapist side, adjusting a plan mid-week was slow. In testing, videos built confidence, but holding the phone while exercising was hard.",
-        "From that: I designed a reminder system that fits each patient's routine; redesigned the video player to switch between watching and doing without holding the phone (accessible controls, progress visible on small screens); and simplified the physiotherapist panel, turning many steps into direct editing. In total, 25+ interfaces across 28+ sprints.",
+        "I ran more than 15 interviews with patients and physiotherapists. On the patient side, most of them didn't do the exercises at home, whether it was forgetting, the rush of daily life or the fear of getting hurt on their own; on the therapist side, adjusting a plan mid-week was way too slow. In testing, the videos built confidence, but holding the phone and exercising at the same time was tricky.",
+        "From there, I designed a reminder system that fit into each patient's routine, redesigned the video player so people could switch between watching and doing without holding the phone (with accessible controls and progress you can see on a small screen), and simplified the physiotherapist panel, turning a bunch of steps into direct editing. In all it was more than 25 interfaces across 28+ sprints.",
         "## Results and takeaways",
-        "We left with our own visual identity, user-validated flows and a high-fidelity prototype within the accelerator deadline — and the project was selected by Unimed. I learned that when a user is in pain, has limited mobility or low energy, the interface has to work for them: many could only use the phone with one hand, or had nowhere to prop it while exercising.",
+        "We came out of the accelerator with our own visual identity, flows validated with users and a high-fidelity prototype within the deadline, and the project was even selected by Unimed. I learned that when a user is in pain, has limited mobility or low energy, the interface has to work for them: a lot of people could only use the phone with one hand, or had nowhere to prop it while exercising.",
       ],
       links: [
         {
@@ -392,7 +400,7 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
   L5: {
     pt: {
       title: "Músicas",
-      role: "Produção musical — FL Studio",
+      role: "Produção musical · FL Studio",
       body: [
         "Gosto de produzir músicas por aí, e se você é cantor/compositor, tô sempre disponível pra fazer um som!",
         "Se quiser dar uma ouvidinha:",
@@ -401,7 +409,7 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
     },
     en: {
       title: "Music",
-      role: "Music production — FL Studio",
+      role: "Music production · FL Studio",
       body: [
         "I like making music here and there, and if you're a singer/songwriter, I'm always up for making a track!",
         "If you want a little listen:",
@@ -436,7 +444,7 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
       body: [
         "to my friend pedro, for introducing me to apple sharp!",
         "to apple-sharp, the engine used to generate the 3d models of the metros.",
-        "to the incredible book one metro world and jug cerovic's work, which documented, organized and created a design system for building metro map systems — incredible.",
+        "to the incredible book one metro world and jug cerovic's work, which documented, organized and created an amazing design system for building metro map systems.",
         "to little claude and codex!",
         "## Recommendations",
         "And since you made it this far: some songs, films and books I think everyone should know! :o",
@@ -454,7 +462,7 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
   L9: {
     pt: {
       title: "Tour House",
-      role: "SaaS B2B de viagens corporativas — OBT",
+      role: "SaaS B2B de viagens corporativas · OBT",
       header: {
         company: "Tour House",
         period: "7 meses",
@@ -462,16 +470,26 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
       },
       body: [
         "## Contexto",
-        "A Tour House é uma agência de viagens corporativas, e o OBT é a plataforma onde as empresas clientes reservam e gerenciam suas viagens. Reserva corporativa é um domínio cheio de regras (políticas de viagem, aprovações, orçamento, integrações), e o desafio é fazer tudo isso caber numa interface que o usuário final use sem manual.",
+        "A Tour House é uma agência de viagens corporativas, e o OBT (Online Booking Tool) é a plataforma onde as empresas clientes buscam, reservam e governam as viagens do time (aéreo, hospedagem, veículos e rodoviário), com política de viagem, aprovações e controle de custo embutidos.",
+        "[[img:/case-studies/tour-house-busca.png|Busca do OBT: aéreo, hospedagem, veículos e rodoviário, com assistente de IA]]",
+        "## Desafio",
+        "Reserva corporativa é um domínio cheio de regra: cada empresa tem a sua política, os seus centros de custo, aprovadores e orçamento. O produto precisa servir três públicos ao mesmo tempo: o viajante que quer resolver rápido, o aprovador que precisa decidir com contexto, e o gestor que quer visibilidade de gasto e compliance. O trabalho é fazer tudo isso caber numa interface simples o bastante pra ninguém precisar de treinamento.",
         "## Ações",
-        "Conduzo o design de ponta a ponta, do discovery à entrega: pesquisa, fluxos, protótipos em alta fidelidade (pixel perfect no Figma) e handoff para Engenharia. Trabalho lado a lado com o PM e os stakeholders na priorização de demandas e na tradução de requisitos em soluções de design.",
-        "## Resultados e conclusões",
-        "Do discovery à entrega em +15 sprints, entreguei +25 features ao longo de 12 épicos, com um handoff que mantém a fidelidade visual e funcional entre o protótipo e o que chega no ar — sem deixar a Engenharia adivinhando.",
+        "Conduzo o design de ponta a ponta, do discovery à entrega, ao longo de mais de 17 sprints, em parceria direta com o PM e os stakeholders, traduzindo os requisitos e a política de viagem em fluxos. Atuei em quatro frentes do produto.",
+        "Na busca e reserva, montei um fluxo único que cobre aéreo, hospedagem, veículos e rodoviário, com busca avançada, últimas buscas e um assistente de IA (ainda em beta), pensado pra o comprador resolver a viagem em poucos cliques.",
+        "Na governança, desenhei as solicitações e aprovações, transformando a política de cada cliente em decisões que o aprovador entende na hora.",
+        "Nos bilhetes não voados, cuidei da gestão dos créditos de passagens que não foram usadas, com filtros, status e exportação de relatório, que no fim é dinheiro que a empresa consegue recuperar.",
+        "[[img:/case-studies/tour-house-bilhetes.png|Gestão de bilhetes não voados: recuperação de créditos]]",
+        "E nos indicadores de gestão, montei os dashboards de volume, viagens, passageiros e ticket médio, com recortes operacional, financeiro, de performance e de compliance, pra o gestor enxergar o gasto e a aderência à política.",
+        "[[img:/case-studies/tour-house-dashboard.png|Indicadores de gestão: volume, viagens, passageiros e ticket médio]]",
+        "Prototipei tudo em alta fidelidade, pixel perfect no Figma, e conduzi o handoff pros devs.",
+        "## Resultados",
+        "Do discovery à entrega, em mais de 17 sprints, entreguei mais de 25 features ao longo de 12 épicos, com um handoff que segura a fidelidade visual e funcional entre o protótipo e o que chega no ar. O aprendizado principal foi que, num produto B2B cheio de regra, o valor do design tá em reduzir a complexidade a decisões simples pra cada um dos três públicos, mantendo o controle que a empresa precisa ter.",
       ],
     },
     en: {
       title: "Tour House",
-      role: "B2B corporate travel SaaS — OBT",
+      role: "B2B corporate travel SaaS · OBT",
       header: {
         company: "Tour House",
         period: "7 months",
@@ -479,11 +497,21 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
       },
       body: [
         "## Context",
-        "Tour House is a corporate travel agency, and the OBT is the platform where client companies book and manage their trips. Corporate travel booking is a domain full of rules (travel policies, approvals, budgets, integrations), and the challenge is fitting all of it into an interface the end user can operate without a manual.",
+        "Tour House is a corporate travel agency, and the OBT (Online Booking Tool) is the platform where client companies search, book and govern their team's travel (flights, hotels, cars and bus), with travel policy, approvals and cost control built in.",
+        "[[img:/case-studies/tour-house-busca.png|OBT search: flights, hotels, cars and bus, with an AI assistant]]",
+        "## Challenge",
+        "Corporate booking is a domain full of rules: every company has its own policy, cost centres, approvers and budget. The product has to serve three audiences at once: the traveller who wants to be done fast, the approver who needs to decide with context, and the manager who wants spend visibility and compliance. The job is fitting all of that into an interface simple enough that no one needs training.",
         "## Actions",
-        "I run design end to end, from discovery to delivery: research, flows, high-fidelity prototypes (pixel perfect in Figma) and handoff to Engineering. I work side by side with the PM and stakeholders on prioritizing demands and translating requirements into design solutions.",
-        "## Results and takeaways",
-        "From discovery to delivery in 15+ sprints, I shipped 25+ features across 12 epics, with a handoff that keeps visual and functional fidelity between the prototype and what ships — never leaving Engineering guessing.",
+        "I run the design end to end, from discovery to delivery, across more than 17 sprints, in close partnership with the PM and the stakeholders, translating the requirements and travel policy into flows. I worked on four fronts of the product.",
+        "On search and booking, I put together a single flow that covers flights, hotels, cars and bus, with advanced search, recent searches and an AI assistant (still in beta), built for the buyer to sort out a trip in a few clicks.",
+        "On governance, I designed the requests and approvals, turning each client's policy into decisions the approver understands right away.",
+        "On unflown tickets, I handled the credits from tickets that went unused, with filters, status and report export, which in the end is money the company gets to recover.",
+        "[[img:/case-studies/tour-house-bilhetes.png|Unflown-ticket management: recovering credits]]",
+        "And on management analytics, I put together the dashboards for volume, trips, passengers and average ticket, with operational, financial, performance and compliance cuts, so the manager can see spend and policy adherence.",
+        "[[img:/case-studies/tour-house-dashboard.png|Management analytics: volume, trips, passengers and average ticket]]",
+        "I prototyped everything in high fidelity, pixel perfect in Figma, and ran the handoff to the devs.",
+        "## Results",
+        "From discovery to delivery, across more than 17 sprints, I shipped 25+ features over 12 epics, with a handoff that holds the visual and functional fidelity between the prototype and what goes live. The main takeaway was that, in a rule-heavy B2B product, the value of design is in reducing the complexity to simple decisions for each of the three audiences, while keeping the control the company needs to have.",
       ],
     },
   },

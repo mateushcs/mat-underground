@@ -107,7 +107,30 @@ interface RawLine {
   label?: { x: number; y: number; text?: string; angle?: number };
 }
 
-const RAW_LINES: RawLine[] = [
+// Trimmed the grey network: the short stub branches (tiny tails off terminals)
+// plus the greys that floated furthest from any coloured line were dropped. A
+// handful of grey lines stay for texture — the ones that terminate near a
+// coloured line, so they read as part of the network.
+const REMOVE_LINE_IDS = new Set([
+  "CR16",
+  "FY17",
+  "LR18",
+  "BU20",
+  "CR24",
+  "BR25",
+  "CC26",
+  "FY27",
+  "LR28",
+  "BRT1",
+  "T1",
+  "CC1",
+  "T22",
+  "CR21",
+  "L12",
+  "L13",
+]);
+const RAW_LINES: RawLine[] = (
+  [
   {
     id: "L1",
     name: "Sobre mim",
@@ -368,20 +391,6 @@ const RAW_LINES: RawLine[] = [
     ],
   },
   {
-    id: "CC19",
-    name: "Cacumen",
-    shortName: "19",
-    color: "line-grey",
-    kind: "cable-car",
-    noPage: true,
-    stationPattern: "endpoints",
-    terminalInterchanges: { end: ["L1"] },
-    pts: [
-      [1000.34, 447.37],
-      [1419.84, 447.37],
-    ],
-  },
-  {
     id: "BU20",
     name: "Orbis",
     shortName: "20",
@@ -515,7 +524,8 @@ const RAW_LINES: RawLine[] = [
       [33.34, 997],
     ],
   },
-];
+] as RawLine[]
+).filter((l) => !REMOVE_LINE_IDS.has(l.id));
 
 // Segment geometry helpers
 // Returns the angle of a line segment in degrees: 0=right, 90=down, 45=DR, -45=UR.
@@ -1093,7 +1103,7 @@ const stationLabelAngleOverrides = new Map<string, Station["labelAngle"]>([
 // the crowded inside of the turn; flip them to the open outside of the bend.
 const stationLabelSideOverrides = new Map<string, 1 | -1>([
   ["s20", 1], // Nox: squeezed between the L2 corner and the Pax interchange
-  ["x137", -1], // Numerus (L5+CR16): default side lands on Tour House (L9); flip it off the stroke
+  ["x136", -1], // L5+CR16 interchange: default side lands on Tour House (L9); flip it off the stroke
 ]);
 // Manual nudges (kept exactly on the line) for the rare auto stop that lands
 // too near a corner/interchange to spacing- and label-clear cleanly.
