@@ -1,6 +1,7 @@
 /**
  * Rough "low-power device" signal for trimming expensive effects: few CPU cores,
- * little memory, or the browser's data-saver. Heuristic by design; errs towards
+ * little memory, the browser's data-saver, or a touch-first device (phones and
+ * tablets have weaker GPUs for full-screen SVG and blur work). Heuristic by design; errs towards
  * the full experience when the APIs are unavailable.
  */
 export function isLowPowerDevice(): boolean {
@@ -11,7 +12,12 @@ export function isLowPowerDevice(): boolean {
   };
   const cores = nav.hardwareConcurrency ?? 8;
   const memory = nav.deviceMemory ?? 8;
-  return cores <= 4 || memory <= 4 || nav.connection?.saveData === true;
+  return (
+    cores <= 4 ||
+    memory <= 4 ||
+    nav.connection?.saveData === true ||
+    window.matchMedia("(pointer: coarse)").matches
+  );
 }
 
 /** Set before first paint by the inline script in __root (html[data-perf="lite"]). */

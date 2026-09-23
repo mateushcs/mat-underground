@@ -586,16 +586,87 @@ export function TransitMap() {
   const cameraLastT = useRef(0);
   const saveViewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const applyView = useCallback((next: ViewState) => {
+  // Low-power tier: while the camera moves, the map layers are shifted with a CSS
+  // transform (composited on the GPU) relative to the last committed view, and the
+  // SVGs + street canvas are only re-rasterised when the camera settles or drifts far.
+  const compositeCamera = useRef(false);
+  const committedView = useRef(view);
+  const cssOffset = useRef(false);
+  // Layout box of the map SVGs and their viewBox "meet" mapping, captured untransformed.
+  const meetBox = useRef({ left: 0, top: 0, s: 1, cx: 0, cy: 0 });
+
+  const mapLayers = () => {
+    const stage = svgRef.current;
+    if (!stage) return [];
+    const layers: (Element | null | undefined)[] = [
+      stage.parentElement?.querySelector("canvas.city-blueprint"),
+      baseContentRef.current?.ownerSVGElement,
+      flowContentRef.current?.ownerSVGElement,
+      stage,
+    ];
+    return layers.filter((el): el is SVGSVGElement | HTMLCanvasElement => !!el);
+  };
+
+  const measureMeet = useCallback(() => {
+    const stage = svgRef.current;
+    if (!stage || cssOffset.current) return;
+    const rect = stage.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    const s = Math.min(rect.width / VIEWBOX.w, rect.height / VIEWBOX.h);
+    meetBox.current = {
+      left: rect.left,
+      top: rect.top,
+      s,
+      cx: (rect.width - VIEWBOX.w * s) / 2 - s * VIEWBOX.x,
+      cy: (rect.height - VIEWBOX.h * s) / 2 - s * VIEWBOX.y,
+    };
+  }, []);
+
+  const commitView = useCallback((next: ViewState) => {
     // Pan/zoom changes a single SVG transform, not every station and label.
     const transform = `translate(${next.x * next.k} ${next.y * next.k}) scale(${next.k})`;
     mapContentRef.current?.setAttribute("transform", transform);
     flowContentRef.current?.setAttribute("transform", transform);
     baseContentRef.current?.setAttribute("transform", transform);
     blueprintRef.current?.draw(next);
-    if (saveViewTimer.current !== null) clearTimeout(saveViewTimer.current);
-    saveViewTimer.current = setTimeout(() => rememberMapView(targetRef.current), 250);
+    committedView.current = next;
+    if (cssOffset.current) {
+      for (const layer of mapLayers()) (layer as HTMLElement).style.transform = "";
+      cssOffset.current = false;
+    }
   }, []);
+
+  const applyView = useCallback(
+    (next: ViewState, settled = true) => {
+      if (!compositeCamera.current || settled) {
+        commitView(next);
+      } else {
+        const base = committedView.current;
+        const r = next.k / base.k;
+        const { s, cx, cy } = meetBox.current;
+        const tx = cx * (1 - r) + s * next.k * (next.x - base.x);
+        const ty = cy * (1 - r) + s * next.k * (next.y - base.y);
+        const stage = svgRef.current;
+        // Too far from the rasterised view: blank edges or blurry zoom would show.
+        const drift =
+          r < 0.7 ||
+          r > 1.5 ||
+          !stage ||
+          Math.abs(tx) > stage.clientWidth * 0.3 ||
+          Math.abs(ty) > stage.clientHeight * 0.3;
+        if (drift) {
+          commitView(next);
+        } else {
+          const css = `translate(${tx}px, ${ty}px) scale(${r})`;
+          for (const layer of mapLayers()) (layer as HTMLElement).style.transform = css;
+          cssOffset.current = true;
+        }
+      }
+      if (saveViewTimer.current !== null) clearTimeout(saveViewTimer.current);
+      saveViewTimer.current = setTimeout(() => rememberMapView(targetRef.current), 250);
+    },
+    [commitView],
+  );
 
   const stepCamera = useCallback(
     (t: number) => {
@@ -617,7 +688,7 @@ export function TransitMap() {
         Math.abs(tgt.y - next.y) * next.k < 0.02;
 
       viewRef.current = settled ? tgt : next;
-      applyView(viewRef.current);
+      applyView(viewRef.current, settled && isPanning.current === false && activePointers.current.size === 0);
 
       if (settled) {
         cameraFrame.current = null;
@@ -648,20 +719,24 @@ export function TransitMap() {
   // sessionStorage, and React does not patch mismatched attributes on hydration.
   useLayoutEffect(() => {
     applyView(viewRef.current);
+    measureMeet();
     // Low-power devices: freeze the flowing line gradients (they repaint every line each frame).
     if (isLitePerf()) {
+      compositeCamera.current = true;
       flowContentRef.current?.ownerSVGElement
         ?.querySelectorAll("linearGradient animateTransform")
         .forEach((node) => node.remove());
     }
-  }, [applyView]);
+  }, [applyView, measureMeet]);
   useEffect(() => {
+    window.addEventListener("resize", measureMeet);
     return () => {
+      window.removeEventListener("resize", measureMeet);
       if (cameraFrame.current !== null) cancelAnimationFrame(cameraFrame.current);
       if (saveViewTimer.current !== null) clearTimeout(saveViewTimer.current);
       rememberMapView(targetRef.current);
     };
-  }, []);
+  }, [measureMeet]);
   // Which line is currently focused via the menu legend (hover). When set, every
   // other line / station / label on the map dims to FOCUS_DIM.
   const [hoveredLineId, setHoveredLineId] = useState<string | null>(null);
@@ -1133,19 +1208,18 @@ export function TransitMap() {
   }, [stopInertia]);
 
   // Client px -> SVG user space (viewBox coords, before the content transform).
+  // Uses the layout mapping, not getScreenCTM: the latter includes the temporary CSS
+  // camera offset of the low-power tier.
   const clientToUser = useCallback((clientX: number, clientY: number) => {
-    const ctm = svgRef.current?.getScreenCTM();
-    if (!ctm) return null;
-    const inv = ctm.inverse();
-    return {
-      x: inv.a * clientX + inv.c * clientY + inv.e,
-      y: inv.b * clientX + inv.d * clientY + inv.f,
-    };
-  }, []);
+    if (!svgRef.current) return null;
+    measureMeet();
+    const { left, top, s, cx, cy } = meetBox.current;
+    return { x: (clientX - left - cx) / s, y: (clientY - top - cy) / s };
+  }, [measureMeet]);
 
   const refreshUserPerPx = () => {
-    const ctm = svgRef.current?.getScreenCTM();
-    if (ctm && ctm.a > 0) userPerPx.current = 1 / ctm.a;
+    measureMeet();
+    if (meetBox.current.s > 0) userPerPx.current = 1 / meetBox.current.s;
   };
 
   const beginPan = (clientX: number, clientY: number) => {
@@ -1304,6 +1378,10 @@ export function TransitMap() {
 
           inertiaAnimId.current = requestAnimationFrame(stepInertia);
         }
+      }
+      // Camera already at rest under the finger: rasterise the final view now.
+      if (inertiaAnimId.current === null && cameraFrame.current === null && cssOffset.current) {
+        commitView(viewRef.current);
       }
     } else if (activePointers.current.size === 1) {
       // One finger remains after pinch — resume pan from current position

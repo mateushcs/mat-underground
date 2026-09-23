@@ -79,17 +79,36 @@ export function SolvCaseVisual({ section, lang }: { section: string; lang: "pt" 
   }
 
   if (["desafio", "challenge"].includes(section)) {
+    // The same programs, grouped three different ways: each client wanted its own.
     const columns = en
-      ? [["Startup call", "Ideas program", "AI program"], ["AI program", "Startup call", "Ideas program"], ["Ideas program", "AI program", "Startup call"]]
-      : [["Chamada de startups", "Programa de ideias", "Programa de IA"], ["Programa de IA", "Chamada de startups", "Programa de ideias"], ["Programa de ideias", "Programa de IA", "Chamada de startups"]];
+      ? [
+          { who: "Client A", by: "by program", items: ["Startup call", "Ideas program", "AI program"] },
+          { who: "Client B", by: "by business area", items: ["Operations", "Sustainability", "Technology"] },
+          { who: "Client C", by: "by stage", items: ["Applications", "Evaluation", "Approved"] },
+        ]
+      : [
+          { who: "Cliente A", by: "por programa", items: ["Chamada de startups", "Programa de ideias", "Programa de IA"] },
+          { who: "Cliente B", by: "por área da empresa", items: ["Operações", "Sustentabilidade", "Tecnologia"] },
+          { who: "Cliente C", by: "por etapa", items: ["Inscrições", "Avaliação", "Aprovados"] },
+        ];
     return (
       <div className="case-visual case-organization">
-        <h3>{en ? "Differences between workflows" : "Diferenças entre os fluxos"}</h3>
+        <h3>{en ? "Same data, three ways to organize it" : "Os mesmos dados, três jeitos de organizar"}</h3>
         <div className="case-organization-grid">
-          {columns.map((col, i) => (
-            <ol key={i}>{col.map((item) => <li key={item}>{item}</li>)}</ol>
+          {columns.map((col) => (
+            <div key={col.who}>
+              <p className="case-organization-head">
+                <strong>{col.who}</strong> {en ? "organizes" : "organiza"} {col.by}
+              </p>
+              <ol>{col.items.map((item) => <li key={item}><CaseIcon icon={Tag} />{item}</li>)}</ol>
+            </div>
           ))}
         </div>
+        <p className="case-interactive-detail">
+          {en
+            ? "The product only offered one fixed structure, so each client worked around it. Tags let every team group the same applications its own way."
+            : "O produto só oferecia uma estrutura fixa, e cada cliente dava um jeito por fora. As tags deixaram cada time agrupar as mesmas inscrições do seu jeito."}
+        </p>
       </div>
     );
   }

@@ -71,7 +71,7 @@
 @media(max-width:900px) {
   .case-section { grid-template-columns:1fr; gap:1.5rem; }
   .case-network-track { grid-template-columns:1fr; }
-  .case-network-arrow { text-align:center; transform:rotate(90deg); }
+  .case-network-arrow { justify-self:center; line-height:1; transform:rotate(90deg); }
 }
 @media(max-width:600px) {
   .case-meta { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -280,7 +280,19 @@
   display: grid;
   gap: 0.5rem;
 }
+.case-organization-head {
+  margin: 0 0 0.7rem;
+  font-size: 0.8rem;
+  color: var(--case-muted);
+}
+.case-organization-head strong {
+  color: var(--case-text);
+  font-weight: 500;
+}
 .case-organization-grid li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   padding: 0.7rem 0.8rem;
   border: 1px solid var(--case-border);
   border-radius: 3px;
@@ -561,6 +573,10 @@
 .case-wheel-controls button { padding:8px; border:1px solid var(--case-border); border-radius:50%; color:var(--case-muted); cursor:pointer; }
 .case-results-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border:1px solid var(--case-border); border-radius:16px; overflow:hidden; margin-top:2rem; background:var(--case-panel); }
 .case-results-grid--single { grid-template-columns:1fr; }
+/* Odd count: the first result spans the full row as the headline. */
+.case-results-grid--lead .case-result:first-child { grid-column:1 / -1; }
+.case-results-grid--lead .case-result:nth-child(odd) { border-right:0; }
+.case-results-grid--lead .case-result:nth-child(even) { border-right:1px solid var(--case-border); }
 .case-result { margin:0; padding:2rem; border-bottom:1px solid var(--case-border); display:flex; flex-direction:column; gap:1rem; }
 .case-result:nth-child(odd) { border-right:1px solid var(--case-border); }
 .case-result strong { font-size:clamp(2.5rem,5vw,4.5rem); line-height:1.1; font-weight:500; color:var(--station-accent); letter-spacing:-.045em; }
@@ -585,14 +601,15 @@
 }
 @media(max-width:700px) {
   .station-case .case-body { grid-template-columns:1fr; }
-  .case-wheel { position:relative; top:0; width:280px; margin:auto; zoom:.85; }
+  .station-case .case-wheel { display:none; }
   .case-results-grid { grid-template-columns:1fr; }
+  .case-results-grid .case-result:nth-child(n) { border-right:0; }
   .case-result { padding:1.5rem; }
   .case-gallery { gap:.6rem; }
   .case-gallery .case-figure--phone img { height:310px; }
   .station-case .case-process ol { grid-template-columns:1fr; gap:1.2rem; }
   .station-case .case-process ol > li:nth-child(n) { grid-column:1; grid-row:auto; }
-  .station-case .case-process ol > li .case-process-arrow { display:block; left:50%; right:auto; top:auto; bottom:-18px; transform:rotate(90deg); }
+  .station-case .case-process ol > li:nth-child(n) .case-process-arrow { display:block; left:50%; right:auto; top:auto; bottom:-17px; transform:translateX(-50%) rotate(90deg); }
 }
 
 @media(prefers-reduced-motion:reduce) { .case-wheel li { transition:none; } }

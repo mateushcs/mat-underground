@@ -112,7 +112,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{var n=navigator,c=n.hardwareConcurrency||8,m=n.deviceMemory||8;if(c<=4||m<=4||(n.connection&&n.connection.saveData))document.documentElement.dataset.perf='lite'}catch(e){}",
+              "try{var n=navigator,c=n.hardwareConcurrency||8,m=n.deviceMemory||8;if(c<=4||m<=4||(n.connection&&n.connection.saveData)||matchMedia('(pointer: coarse)').matches)document.documentElement.dataset.perf='lite'}catch(e){}",
           }}
         />
       </head>

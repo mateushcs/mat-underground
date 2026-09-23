@@ -6,8 +6,8 @@ const results: Record<string, Record<"pt" | "en", [string, string][]>> = {
     en: [["35%", "less equipment downtime"], ["~35%", "fewer missed maintenance tasks"], ["3,000+", "alerts generated"], ["higher satisfaction", "noticed among Tracbel employees"]],
   },
   L3: {
-    pt: [["50%", "dos projetos passaram a usar a inscrição simplificada"], [">70%", "de adesão às tags"], [">80%", "dos clientes adotaram o painel de inovação"], ["~35%", "menos tempo para aprovar após o redesign"]],
-    en: [["50%", "of projects adopted simplified sign-up"], [">70%", "adoption of tags"], [">80%", "of clients adopted the innovation dashboard"], ["~35%", "less time to approve after the redesign"]],
+    pt: [["40%", "menos tempo gasto gerindo programas de inovação"], ["50%", "dos projetos passaram a usar a inscrição simplificada"], [">70%", "de adesão às tags"], [">80%", "dos clientes adotaram o painel de inovação"], ["~35%", "menos tempo para aprovar após o redesign"]],
+    en: [["40%", "less time spent managing innovation programmes"], ["50%", "of projects adopted simplified sign-up"], [">70%", "adoption of tags"], [">80%", "of clients adopted the innovation dashboard"], ["~35%", "less time to approve after the redesign"]],
   },
   L4: {
     pt: [["protótipo", "em alta fidelidade como entrega final"], ["player ajustado", "a partir das dificuldades observadas nos testes"], ["aprovado", "pela Unimed"]],
@@ -22,7 +22,7 @@ const results: Record<string, Record<"pt" | "en", [string, string][]>> = {
 // One icon per result, in the same order as the entries above.
 const icons: Record<string, LucideIcon[]> = {
   L2: [Timer, Wrench, BellRing, Smile],
-  L3: [UserPlus, Tags, LayoutDashboard, Clock],
+  L3: [Timer, UserPlus, Tags, LayoutDashboard, Clock],
   L4: [FlaskConical, CirclePlay, Award],
   L9: [Zap],
 };
@@ -30,7 +30,8 @@ const icons: Record<string, LucideIcon[]> = {
 export function CaseResults({ lineId, lang }: { lineId: string; lang: "pt" | "en" }) {
   const items = results[lineId]?.[lang];
   if (!items) return null;
-  return <div className={`case-results-grid${items.length === 1 ? " case-results-grid--single" : ""}`}>
+  const variant = items.length === 1 ? " case-results-grid--single" : items.length % 2 === 1 ? " case-results-grid--lead" : "";
+  return <div className={`case-results-grid${variant}`}>
     {items.map(([value, description], index) => {
       const Icon = icons[lineId]?.[index];
       return <p key={description} className="case-result">

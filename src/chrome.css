@@ -270,6 +270,16 @@ html[data-perf="lite"] .map-film::after { display: none !important; }
 html[data-perf="lite"] .map-radiance-outer { display: none; }
 html[data-perf="lite"] :is(.map-packet, .map-train-light, .map-train) { filter: none !important; }
 html[data-perf="lite"] .home-cd-foil { animation-duration: 48s; }
+/* Camera offset while panning/zooming is a composited CSS transform (see TransitMap). */
+html[data-perf="lite"] :is(.city-blueprint, .map-stage-base, .map-stage-flow, svg.map-stage) {
+  transform-origin: 0 0;
+  will-change: transform;
+}
+/* Backdrop blur over an animated map re-blurs the whole region every frame. */
+html[data-perf="lite"] :is(.map-language-tabs, .map-theme-toggle, .map-reading-btn, .station-back-link) {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
 
 /* Full-screen overlays: no blend modes. Blending forces the whole viewport to be
    recomposited every frame while the lines animate underneath. */
