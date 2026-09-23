@@ -1,3 +1,8 @@
+import { uptimeCase } from "./uptimeCase";
+import { solvCase } from "./solvCase";
+import { terapioCase } from "./terapioCase";
+import { tourHouseCase } from "./tourHouseCase";
+
 // ============================================================================
 // CONTEUDO DO PORTFOLIO - editavel pelo Mat.
 // ----------------------------------------------------------------------------
@@ -40,10 +45,12 @@ export interface StationHeader {
   company: string;
   /** end client, when different from the company (omit for own products) */
   client?: string;
-  /** e.g. "out 2022 – jun 2023 · 9 meses" */
+  /** e.g. "Out 2022 – jun 2023 · 9 meses" */
   period: string;
   /** Mateus's role on the project */
   role: string;
+  /** who Mateus collaborated with (e.g. "PM, 3 devs, CTO") */
+  team?: string;
 }
 
 export interface StationContent {
@@ -54,6 +61,27 @@ export interface StationContent {
   body: string[];
   links?: StationLink[];
   media?: StationMedia[];
+  /**
+   * "case" opts a station into the long-form case-study layout (hero, metadata
+   * grid, sticky section nav, two-column sections). Omitted = the default panel.
+   */
+  layout?: "case";
+  /** discipline chips shown above the title in the case layout. */
+  tags?: string[];
+  /** one- or two-line summary shown in the case hero (Overview). */
+  summary?: string;
+  /** full-bleed editorial cover for the case layout (falls back to the poster). */
+  cover?: { src: string; alt: string };
+  /** Liner-notes credits (Créditos & Recs page). */
+  credits?: StationCredit[];
+}
+
+export interface StationCredit {
+  role: string;
+  name: string;
+  note: string;
+  url?: string;
+  urlLabel?: string;
 }
 
 const musicEmbeds = {
@@ -211,23 +239,29 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
     pt: {
       title: "Sobre mim",
       role: "Product designer & manager · Fortaleza",
+      layout: "case",
+      tags: ["Product Design", "Product Management", "Pesquisa", "Música"],
+      summary:
+        "Product designer e manager em Fortaleza. Do discovery ao handoff, equilibrando estratégia, negócio e quem usa.",
       body: [
-        "oiê! hi! 你好！eu sou o mateus, mas pode me chamar de mat. eu trabalho com design e gestão de produto aqui de fortalcity, e do resto do mundo também quando dá pra ser remoto.",
-        "já faz mais de cinco anos que eu venho desenhando produto digital de ponta a ponta, desde o discovery até o handoff pros devs. o que eu mais gosto é de pegar os dados, os desejos e os destinos das pessoas e transformar tudo isso em produto, tentando sempre equilibrar a estratégia, o negócio e o lado de quem vai usar. e faço isso de bom humor, sempre.",
-        "na neo ventures, por exemplo, eu redesenhei um design system do zero, com mais de 30 componentes, e ao longo desses anos entreguei mais de 80 features em mais de 80 sprints, sempre partindo de conversas de discovery com usuário. era tudo SaaS B2B bem complexo, e eu tocava o processo inteiro, da pesquisa até o handoff.",
-        "também já trabalhei como product manager, escrevendo as histórias de usuário, priorizando o roadmap, olhando os dados e cuidando do relacionamento direto com o cliente.",
-        "nesses anos eu passei por SaaS B2B, agritech, healthtech e inovação aberta, e cada área me ensinou uma coisa diferente. ah, e quando sobra um tempo, eu também produzo música.",
+        "Oiê! Hi! 你好！Eu sou o Mateus, mas pode me chamar de Mat. Eu trabalho com design e gestão de produto aqui de Fortalcity, e do resto do mundo também quando dá pra ser remoto. Já passei por projetos em áreas como SaaS B2B, agritech, healthtech e inovação aberta, e cada área me ensinou uma coisa diferente. Ah, e quando sobra um tempo, eu também produzo música.",
+        "Já faz mais de cinco anos que eu venho desenhando produto digital de ponta a ponta, do discovery ao handoff pros devs. O que eu mais gosto é de pegar os dados, os desejos e os destinos das pessoas e transformar tudo isso em produto, equilibrando a estratégia, o negócio e o lado de quem vai usar. E faço isso de bom humor, sempre.",
+        "Nesse tempo, construí um design system do zero, com foco em tokenização e em diretrizes de uso e aplicação, e conduzi pesquisas em iniciativas complexas, tanto com foco em estratégia quanto em usabilidade e melhoria de produtos SaaS B2B.",
+        "Também já atuei como product manager, tomando decisões estratégicas, conduzindo o time, acompanhando métricas e construindo o roadmap junto com a liderança e o marketing.",
       ],
     },
     en: {
       title: "About me",
       role: "Product designer & manager · Fortaleza",
+      layout: "case",
+      tags: ["Product Design", "Product Management", "Research", "Music"],
+      summary:
+        "Product designer and manager in Fortaleza. From discovery to handoff, balancing strategy, business and the people who use it.",
       body: [
-        "oiê! hi! 你好! i'm mateus, but you can call me mat. i work with product design and product management here in fortalcity, and anywhere else too when it can be remote.",
-        "i've been designing digital products end to end for more than five years now, from discovery all the way to the handoff to the devs. what i enjoy the most is taking people's data, desires and destinations and turning all of that into a product, always trying to balance the strategy, the business and the side of whoever is going to use it. and i do it in a good mood, always.",
-        "at neo ventures, for example, i redesigned a design system from scratch, with more than 30 components, and over those years i shipped more than 80 features across more than 80 sprints, always starting from discovery conversations with users. it was all fairly complex B2B SaaS, and i ran the whole process, from research to handoff.",
-        "i've also worked as a product manager, writing the user stories, prioritizing the roadmap, looking at the data and taking care of the direct relationship with the client.",
-        "over these years i've been through B2B SaaS, agritech, healthtech and open innovation, and each area taught me something different. oh, and when i have some spare time, i also make music.",
+        "Oiê! Hi! 你好! I'm Mateus, but you can call me Mat. I work in product design and management from Fortaleza, and anywhere else when remote work makes it possible. I've worked on projects in areas such as B2B SaaS, agritech, healthtech and open innovation, and each taught me something different. Oh, and when I have some spare time, I also make music.",
+        "I've been designing digital products end to end for more than five years now, from discovery all the way to the handoff to the devs. What i enjoy the most is taking people's data, desires and destinations and turning all of that into a product, balancing the strategy, the business and the side of whoever is going to use it. And i do it in a good mood, always.",
+        "Along the way, i built a design system from scratch, focused on tokenization and on usage and application guidelines, and i led research on complex initiatives, both focused on strategy and on usability and improvement of B2B SaaS products.",
+        "I've also worked as a product manager, making strategic decisions, leading the team, following the metrics and building the roadmap together with leadership and marketing.",
       ],
     },
   },
@@ -236,54 +270,36 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
     pt: {
       title: "Uptime Center",
       role: "Tracbel · monitoramento preditivo",
+      layout: "case",
+      tags: ["UX/UI Design", "Design System", "Monitoramento preditivo", "Pesquisa"],
+      summary:
+        "Da conferência manual à manutenção preventiva: como desenhei uma experiência integrada para os consultores de pós-venda da Tracbel.",
       header: {
         company: "Neo Ventures",
         client: "Tracbel",
         period: "9 meses",
         role: "Product Designer (designer único)",
+        team: "PM, 3 devs, stakeholders da Tracbel",
       },
-      body: [
-        "## Contexto",
-        "A Tracbel queria usar a telemetria das frotas pra automatizar a identificação e a notificação das manutenções. O Uptime Center faz monitoramento preditivo, diagnóstico remoto e planejamento de serviço pra equipamentos de várias marcas (Volvo, Tigercat e outras), e atende perfis bem diferentes ao mesmo tempo: o especialista técnico, o coordenador, o gestor e o técnico de campo.",
-        "Entrei como único designer numa squad com PM, 3 devs e os stakeholders da Tracbel, e a gente lançou o produto na Agrishow de 2023.",
-        "[[img:/case-studies/uptime-login.png|Tela de login do Uptime Center]]",
-        "## Desafio",
-        "A equipe de pós-venda monitorava frotas inteiras, de várias marcas, tudo na mão. O sistema precisava mostrar o que exige ação agora e o que pode esperar, de forma que perfis bem diferentes, do especialista técnico ao técnico de campo, conseguissem ler a mesma tela sem dificuldade. E era muita superfície pra um designer só dar conta: análise de óleo, monitoramento das máquinas, dashboards e integrações, tudo precisando de consistência.",
-        "## Ações",
-        "Toquei o discovery com consultores, gestores, técnicos e mecânicos pra entender como a equipe priorizava os alertas no dia a dia, quais eram as exceções e onde o sistema podia dar uma mão.",
-        "A partir disso, montei um design system adaptado a partir de uma biblioteca que já existia e fui evoluindo ele junto com o produto ao longo de mais de 14 sprints. Desenhei bastante coisa: as regras pra análise de óleo, o monitoramento das máquinas num mapa ao vivo, os alertas por severidade, os dashboards, o planejamento de serviço e a integração com o SAP e outros sistemas, com componentes que funcionam pra várias marcas e em telas diferentes, do desktop do escritório até o tablet no campo. Trabalhei lado a lado com os devs no handoff, alinhando o comportamento de cada componente na hora.",
-        "[[img:/case-studies/uptime-control-room.png|Central de operação da Tracbel]]",
-        "## Resultados e conclusões",
-        "O Uptime Center entrou na operação de pós-venda da Tracbel, com alertas por severidade, diagnóstico remoto, monitoramento das máquinas no mapa, dashboards e planejamento de serviço numa interface só.",
-        "Ser o único designer da squad me obrigou a ser o ponto de conexão entre produto, negócio e os devs, a decidir rápido, comunicar melhor e segurar a fidelidade entre o protótipo e o produto final.",
-        "[[img:/case-studies/uptime-signage.png|Placa Uptime Center sobre os monitores]]",
-      ],
+      cover: { src: "/case-studies/uptime-cover.webp", alt: "Equipe da Tracbel na central de operação do Uptime Center" },
+      body: uptimeCase.pt,
     },
     en: {
       title: "Uptime Center",
       role: "Tracbel · predictive monitoring",
+      layout: "case",
+      tags: ["UX/UI Design", "Design System", "Predictive monitoring", "Research"],
+      summary:
+        "From manual checks to preventive maintenance: designing an integrated experience for Tracbel’s after-sales consultants.",
       header: {
         company: "Neo Ventures",
         client: "Tracbel",
         period: "9 months",
         role: "Product Designer (sole designer)",
+        team: "PM, 3 devs, Tracbel stakeholders",
       },
-      body: [
-        "## Context",
-        "Tracbel wanted to use fleet telemetry to automate spotting and flagging maintenance. Uptime Center does predictive monitoring, remote diagnostics and service planning for multi-brand equipment (Volvo, Tigercat and others), and it serves very different profiles at the same time: the technical specialist, the coordinator, the manager and the field technician.",
-        "I came in as the only designer in a squad with a PM, 3 devs and the Tracbel stakeholders, and we launched the product at Agrishow 2023.",
-        "[[img:/case-studies/uptime-login.png|Uptime Center login screen]]",
-        "## Challenge",
-        "The after-sales team monitored whole fleets, across many brands, all by hand. The system had to show what needs action now and what can wait, so that very different profiles, from the technical specialist to the field technician, could read the same screen without trouble. And it was a lot of surface for a single designer to cover: oil analysis, machine monitoring, dashboards and integrations, all needing to stay consistent.",
-        "## Actions",
-        "I ran discovery with consultants, managers, technicians and mechanics to understand how the team prioritized alerts day to day, what the exceptions were, and where the system could help.",
-        "From there, I put together a design system adapted from an existing library and grew it alongside the product across 14+ sprints. I designed a lot of it: the rules for oil analysis, live machine monitoring on a map, severity-based alerts, dashboards, service planning and the integration with SAP and other systems, with components that work across brands and screen sizes, from the office desktop to the field tablet. I worked side by side with the devs on the handoff, aligning each component's behaviour on the spot.",
-        "[[img:/case-studies/uptime-control-room.png|Tracbel operations room]]",
-        "## Results and takeaways",
-        "Uptime Center became part of Tracbel's after-sales operation, with severity-based alerts, remote diagnostics, machine monitoring on the map, dashboards and service planning in a single interface.",
-        "Being the only designer in the squad forced me to be the connection point between product, business and the devs, to decide faster, communicate better and hold the fidelity between prototype and final product.",
-        "[[img:/case-studies/uptime-signage.png|Uptime Center signage above the team monitors]]",
-      ],
+      cover: { src: "/case-studies/uptime-cover.webp", alt: "Tracbel team in the Uptime Center operations room" },
+      body: uptimeCase.en,
     },
   },
 
@@ -291,42 +307,34 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
     pt: {
       title: "Solv",
       role: "Neo Ventures · SaaS B2B de inovação",
+      layout: "case",
+      tags: ["UX/UI Design", "Design System", "Product Management", "Pesquisa"],
+      summary:
+        "Do software de inovação aberta à plataforma completa: como redesenhei o Solv, destravei a participação e construí o sistema que deu consistência ao produto.",
       header: {
         company: "Neo Ventures",
         period: "36 meses",
         role: "Product Designer & Product Manager",
+        team: "2 designers, 1 tech lead, 5 devs",
       },
-      body: [
-        "## Contexto",
-        "O Solv começou como um software de inovação aberta (formulários, triagem de startups, white label) e foi virando uma plataforma que cobre inovação interna, portfólio de projetos, melhoria contínua e até um copiloto de IA. O produto cresceu bastante, mas a experiência não acompanhou: quem já conhecia os caminhos se virava, e quem chegava novo, ou o cliente que queria enxergar o valor estratégico, acabava se perdendo no meio do caminho.",
-        "## Desafio",
-        "Fazer um monte de feature, tipo de cliente e cenário andarem em harmonia pra usuários bem diferentes, preservando quem já dependia do produto no dia a dia. E eu acumulava dois papéis ao mesmo tempo: era o designer do redesign e o product manager que decidia o que entrava no roadmap.",
-        "## Ações",
-        "Conduzi o redesign de ponta a ponta e gerenciei o produto em paralelo. Escrevi as histórias de usuário, os critérios de aceite e as regras de negócio, alinhei o roadmap com a liderança e toquei o relacionamento direto com os clientes nas validações.",
-        "Ao longo desses anos na Neo Ventures foram mais de 150 protótipos funcionais, mais de 80 features e mais de 60 épicos em mais de 80 sprints. Construí o design system do zero, com mais de 30 componentes, tokens e guidelines, e conduzi mais de 10 discoveries com usuários e 5 design sprints.",
-        "## Resultados e conclusões",
-        "Hoje o Solv é referência em gestão da inovação, usado por clientes como Samarco, Nexa, Andrade Gutierrez, Vale e CCEE. O design system acelerou muito o ciclo de entrega de novas features e resolveu a inconsistência visual que tinha se acumulado ao longo dos anos.",
-      ],
+      cover: { src: "/case-studies/solv/solv-home.webp", alt: "Home do gestor de inovação no Solv" },
+      body: solvCase.pt,
     },
     en: {
       title: "Solv",
       role: "Neo Ventures · B2B innovation SaaS",
+      layout: "case",
+      tags: ["UX/UI Design", "Design System", "Product Management", "Research"],
+      summary:
+        "From open-innovation software to a full platform: how I redesigned Solv, unblocked participation and built the system that gave the product consistency.",
       header: {
         company: "Neo Ventures",
         period: "36 months",
         role: "Product Designer & Product Manager",
+        team: "2 designers, 1 tech lead, 5 devs",
       },
-      body: [
-        "## Context",
-        "Solv started as open-innovation software (forms, startup screening, white label) and grew into a platform that covers internal innovation, project portfolios, continuous improvement and even an AI copilot. The product grew a lot, but the experience didn't keep up: people who already knew the paths got by, while newcomers, or the client trying to see the strategic value, ended up getting lost along the way.",
-        "## Challenge",
-        "Getting a ton of features, client types and scenarios to move in harmony for very different users, while keeping the people who already depended on the product day to day. And I wore two hats at once: I was the designer of the redesign and the product manager deciding what made the roadmap.",
-        "## Actions",
-        "I led the redesign end to end and managed the product in parallel. I wrote the user stories, the acceptance criteria and the business rules, aligned the roadmap with leadership and ran the direct client relationships during validations.",
-        "Over those years at Neo Ventures it was more than 150 functional prototypes, 80+ features and 60+ epics across 80+ sprints. I built the design system from scratch, with 30+ components, tokens and guidelines, and ran 10+ discoveries with users plus 5 design sprints.",
-        "## Results and takeaways",
-        "Today Solv is a reference in innovation management, used by clients like Samarco, Nexa, Andrade Gutierrez, Vale and CCEE. The design system sped up the delivery cycle for new features a lot and fixed the visual inconsistency that had piled up over the years.",
-      ],
+      cover: { src: "/case-studies/solv/solv-home.webp", alt: "The innovation manager's home in Solv" },
+      body: solvCase.en,
     },
   },
 
@@ -334,20 +342,18 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
     pt: {
       title: "Terapio",
       role: "Healthtech · TIM AWC",
+      layout: "case",
+      tags: ["UX/UI Design", "Branding", "Healthtech", "Pesquisa"],
+      summary:
+        "Do TCC à aceleração da TIM: como desenhei um sistema de fisioterapia à distância para pacientes e fisioterapeutas, da pesquisa à identidade visual.",
       header: {
         company: "Terapio · aceleração TIM AWC",
         period: "7 meses",
         role: "Product Designer",
+        team: "Equipe de 3 pessoas",
       },
-      body: [
-        "## Contexto",
-        "Em 2021 entrei no programa de aceleração da TIM AWC com o Terapio, uma healthtech de fisioterapia. A ideia era conectar pacientes e fisioterapeutas por telemedicina e ajudar quem precisava continuar o tratamento em casa, longe do consultório. Fui o responsável pelo design do produto do começo ao fim.",
-        "## Ações",
-        "Conduzi mais de 15 entrevistas com pacientes e fisioterapeutas. Do lado do paciente, a maioria não fazia os exercícios em casa, seja por esquecimento, pela correria da rotina ou pela insegurança de se machucar sozinho; do lado do terapeuta, ajustar um plano no meio da semana era lento demais. Nos testes, os vídeos davam confiança, mas segurar o celular e se exercitar ao mesmo tempo era complicado.",
-        "A partir daí, projetei um sistema de lembretes que se encaixava na rotina de cada paciente, redesenhei o player de vídeo pra alternar entre assistir e executar sem precisar segurar o celular (com controles acessíveis e o progresso visível numa tela pequena) e simplifiquei o painel do fisioterapeuta, transformando vários passos numa edição direta. No total foram mais de 25 interfaces em mais de 28 sprints.",
-        "## Resultados e conclusões",
-        "Saímos da aceleração com identidade visual própria, fluxos validados com usuários e um protótipo em alta fidelidade dentro do prazo, e o projeto ainda foi selecionado pela Unimed. Aprendi que, quando o usuário tá com dor, mobilidade limitada ou pouca energia, a interface precisa trabalhar por ele: muita gente só conseguia usar o celular com uma mão, ou não tinha onde apoiar o aparelho enquanto se exercitava.",
-      ],
+      cover: { src: "/case-studies/terapio/terapio-capa.webp", alt: "Capa da identidade visual do Terapio" },
+      body: terapioCase.pt,
       links: [
         {
           label: "Ver projeto no Behance",
@@ -366,20 +372,18 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
     en: {
       title: "Terapio",
       role: "Healthtech · TIM AWC",
+      layout: "case",
+      tags: ["UX/UI Design", "Branding", "Healthtech", "Research"],
+      summary:
+        "From thesis to TIM's accelerator: how I designed a remote physiotherapy system for patients and physiotherapists, from research to visual identity.",
       header: {
         company: "Terapio · TIM AWC accelerator",
         period: "7 months",
         role: "Product Designer",
+        team: "Team of 3 people",
       },
-      body: [
-        "## Context",
-        "In 2021 I joined the TIM AWC acceleration program with Terapio, a physiotherapy healthtech. The idea was to connect patients and physiotherapists over telemedicine and help the people who needed to keep their treatment going at home, away from the clinic. I owned the product design from start to finish.",
-        "## Actions",
-        "I ran more than 15 interviews with patients and physiotherapists. On the patient side, most of them didn't do the exercises at home, whether it was forgetting, the rush of daily life or the fear of getting hurt on their own; on the therapist side, adjusting a plan mid-week was way too slow. In testing, the videos built confidence, but holding the phone and exercising at the same time was tricky.",
-        "From there, I designed a reminder system that fit into each patient's routine, redesigned the video player so people could switch between watching and doing without holding the phone (with accessible controls and progress you can see on a small screen), and simplified the physiotherapist panel, turning a bunch of steps into direct editing. In all it was more than 25 interfaces across 28+ sprints.",
-        "## Results and takeaways",
-        "We came out of the accelerator with our own visual identity, flows validated with users and a high-fidelity prototype within the deadline, and the project was even selected by Unimed. I learned that when a user is in pain, has limited mobility or low energy, the interface has to work for them: a lot of people could only use the phone with one hand, or had nowhere to prop it while exercising.",
-      ],
+      cover: { src: "/case-studies/terapio/terapio-capa.webp", alt: "Terapio visual identity cover" },
+      body: terapioCase.en,
       links: [
         {
           label: "View project on Behance",
@@ -401,6 +405,9 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
     pt: {
       title: "Músicas",
       role: "Produção musical · FL Studio",
+      layout: "case",
+      tags: ["Produção musical", "FL Studio", "Composição"],
+      summary: "Produzo música nas horas vagas e adoro fazer um som com quem canta ou compõe.",
       body: [
         "Gosto de produzir músicas por aí, e se você é cantor/compositor, tô sempre disponível pra fazer um som!",
         "Se quiser dar uma ouvidinha:",
@@ -410,6 +417,9 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
     en: {
       title: "Music",
       role: "Music production · FL Studio",
+      layout: "case",
+      tags: ["Music production", "FL Studio", "Songwriting"],
+      summary: "I make music in my spare time and I'm always up for a track with a singer or songwriter.",
       body: [
         "I like making music here and there, and if you're a singer/songwriter, I'm always up for making a track!",
         "If you want a little listen:",
@@ -420,13 +430,28 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
 
   L7: {
     pt: {
-      title: "Créditos",
-      role: "Colofão e bastidores",
+      title: "Créditos & Recs",
+      role: "Colofão, bastidores e recomendações",
+      layout: "case",
+      tags: ["Colofão", "Referências", "Recomendações"],
+      summary: "Quem ajudou este metrô a sair do papel, e umas coisas que eu acho que todo mundo deveria conhecer.",
+      credits: [
+        { role: "A dica", name: "Pedro", note: "Meu amigo, por me apresentar o Apple Sharp!" },
+        { role: "Motor 3D", name: "Apple Sharp", note: "O mecanismo usado para gerar os modelos 3D dos metrôs." },
+        {
+          role: "Referência",
+          name: "One Metro World",
+          note: "O livro incrível do Jug Cerovic, que documentou, organizou e criou um sistema de design para mapas de metrô.",
+          url: "https://www.inat.fr/files/One_Metro_World_Jug_Cerovic.pdf",
+          urlLabel: "Ler One Metro World",
+        },
+        { role: "Copilotos", name: "Claudinho e Codex", note: "Parceiros de código nessa construção!" },
+      ],
       body: [
-        "ao meu amigo pedro, por me apresentar o apple sharp!",
-        "Ao apple-sharp, pois foi o mecanismo utilizado para gerar os modelos 3D dos metrôs.",
+        "Ao meu amigo Pedro, por me apresentar o Apple Sharp!",
+        "Ao Apple Sharp, pois foi o mecanismo utilizado para gerar os modelos 3D dos metrôs.",
         "Ao incrível livro One Metro World e ao trabalho do Jug Cerovic, que documentou, organizou e criou um sistema de design para mapas de metrô incrível.",
-        "ao claudinho e o codex!",
+        "Ao Claudinho e ao Codex!",
         "## Recomendações",
         "E já que você chegou até aqui: umas musiquinhas, filmes e livros que eu acho que todo mundo deveria conhecer! :o",
       ],
@@ -439,13 +464,28 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
       media: recommendationMedia.pt,
     },
     en: {
-      title: "Credits",
-      role: "Colophon & behind the scenes",
+      title: "Credits & Recs",
+      role: "Colophon, behind the scenes & recommendations",
+      layout: "case",
+      tags: ["Colophon", "References", "Recommendations"],
+      summary: "Who helped this metro leave the drawing board, and a few things I think everyone should know.",
+      credits: [
+        { role: "The tip", name: "Pedro", note: "My friend, for introducing me to Apple Sharp!" },
+        { role: "3D engine", name: "Apple Sharp", note: "The engine used to generate the 3D models of the metros." },
+        {
+          role: "Reference",
+          name: "One Metro World",
+          note: "Jug Cerovic's incredible book, which documented, organized and created a design system for metro maps.",
+          url: "https://www.inat.fr/files/One_Metro_World_Jug_Cerovic.pdf",
+          urlLabel: "Read One Metro World",
+        },
+        { role: "Copilots", name: "Little Claude & Codex", note: "Code partners on this build!" },
+      ],
       body: [
-        "to my friend pedro, for introducing me to apple sharp!",
-        "to apple-sharp, the engine used to generate the 3d models of the metros.",
-        "to the incredible book one metro world and jug cerovic's work, which documented, organized and created an amazing design system for building metro map systems.",
-        "to little claude and codex!",
+        "To my friend Pedro, for introducing me to Apple Sharp!",
+        "To Apple Sharp, the engine used to generate the 3D models of the metros.",
+        "To the incredible book One Metro World and Jug Cerovic's work, which documented, organized and created an amazing design system for building metro map systems.",
+        "To little Claude and Codex!",
         "## Recommendations",
         "And since you made it this far: some songs, films and books I think everyone should know! :o",
       ],
@@ -463,56 +503,34 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
     pt: {
       title: "Tour House",
       role: "SaaS B2B de viagens corporativas · OBT",
+      layout: "case",
+      tags: ["UX/UI Design", "SaaS B2B", "Discovery", "Prototipagem"],
+      summary:
+        "Como desenhei um OBT que caiba numa interface simples: três públicos, as regras de cada cliente e um fluxo de reserva feito para ninguém precisar de treinamento.",
       header: {
         company: "Tour House",
         period: "7 meses",
         role: "Product Designer · UX/UI Designer",
+        team: "PM e stakeholders",
       },
-      body: [
-        "## Contexto",
-        "A Tour House é uma agência de viagens corporativas, e o OBT (Online Booking Tool) é a plataforma onde as empresas clientes buscam, reservam e governam as viagens do time (aéreo, hospedagem, veículos e rodoviário), com política de viagem, aprovações e controle de custo embutidos.",
-        "[[img:/case-studies/tour-house-busca.png|Busca do OBT: aéreo, hospedagem, veículos e rodoviário, com assistente de IA]]",
-        "## Desafio",
-        "Reserva corporativa é um domínio cheio de regra: cada empresa tem a sua política, os seus centros de custo, aprovadores e orçamento. O produto precisa servir três públicos ao mesmo tempo: o viajante que quer resolver rápido, o aprovador que precisa decidir com contexto, e o gestor que quer visibilidade de gasto e compliance. O trabalho é fazer tudo isso caber numa interface simples o bastante pra ninguém precisar de treinamento.",
-        "## Ações",
-        "Conduzo o design de ponta a ponta, do discovery à entrega, ao longo de mais de 17 sprints, em parceria direta com o PM e os stakeholders, traduzindo os requisitos e a política de viagem em fluxos. Atuei em quatro frentes do produto.",
-        "Na busca e reserva, montei um fluxo único que cobre aéreo, hospedagem, veículos e rodoviário, com busca avançada, últimas buscas e um assistente de IA (ainda em beta), pensado pra o comprador resolver a viagem em poucos cliques.",
-        "Na governança, desenhei as solicitações e aprovações, transformando a política de cada cliente em decisões que o aprovador entende na hora.",
-        "Nos bilhetes não voados, cuidei da gestão dos créditos de passagens que não foram usadas, com filtros, status e exportação de relatório, que no fim é dinheiro que a empresa consegue recuperar.",
-        "[[img:/case-studies/tour-house-bilhetes.png|Gestão de bilhetes não voados: recuperação de créditos]]",
-        "E nos indicadores de gestão, montei os dashboards de volume, viagens, passageiros e ticket médio, com recortes operacional, financeiro, de performance e de compliance, pra o gestor enxergar o gasto e a aderência à política.",
-        "[[img:/case-studies/tour-house-dashboard.png|Indicadores de gestão: volume, viagens, passageiros e ticket médio]]",
-        "Prototipei tudo em alta fidelidade, pixel perfect no Figma, e conduzi o handoff pros devs.",
-        "## Resultados",
-        "Do discovery à entrega, em mais de 17 sprints, entreguei mais de 25 features ao longo de 12 épicos, com um handoff que segura a fidelidade visual e funcional entre o protótipo e o que chega no ar. O aprendizado principal foi que, num produto B2B cheio de regra, o valor do design tá em reduzir a complexidade a decisões simples pra cada um dos três públicos, mantendo o controle que a empresa precisa ter.",
-      ],
+      cover: { src: "/case-studies/tour-house-busca.webp", alt: "Busca do OBT com assistente de IA" },
+      body: tourHouseCase.pt,
     },
     en: {
       title: "Tour House",
       role: "B2B corporate travel SaaS · OBT",
+      layout: "case",
+      tags: ["UX/UI Design", "B2B SaaS", "Discovery", "Prototyping"],
+      summary:
+        "How I designed an OBT that fits into a simple interface: three audiences, every client's rules and a booking flow built so no one needs training.",
       header: {
         company: "Tour House",
         period: "7 months",
         role: "Product Designer · UX/UI Designer",
+        team: "PM and stakeholders",
       },
-      body: [
-        "## Context",
-        "Tour House is a corporate travel agency, and the OBT (Online Booking Tool) is the platform where client companies search, book and govern their team's travel (flights, hotels, cars and bus), with travel policy, approvals and cost control built in.",
-        "[[img:/case-studies/tour-house-busca.png|OBT search: flights, hotels, cars and bus, with an AI assistant]]",
-        "## Challenge",
-        "Corporate booking is a domain full of rules: every company has its own policy, cost centres, approvers and budget. The product has to serve three audiences at once: the traveller who wants to be done fast, the approver who needs to decide with context, and the manager who wants spend visibility and compliance. The job is fitting all of that into an interface simple enough that no one needs training.",
-        "## Actions",
-        "I run the design end to end, from discovery to delivery, across more than 17 sprints, in close partnership with the PM and the stakeholders, translating the requirements and travel policy into flows. I worked on four fronts of the product.",
-        "On search and booking, I put together a single flow that covers flights, hotels, cars and bus, with advanced search, recent searches and an AI assistant (still in beta), built for the buyer to sort out a trip in a few clicks.",
-        "On governance, I designed the requests and approvals, turning each client's policy into decisions the approver understands right away.",
-        "On unflown tickets, I handled the credits from tickets that went unused, with filters, status and report export, which in the end is money the company gets to recover.",
-        "[[img:/case-studies/tour-house-bilhetes.png|Unflown-ticket management: recovering credits]]",
-        "And on management analytics, I put together the dashboards for volume, trips, passengers and average ticket, with operational, financial, performance and compliance cuts, so the manager can see spend and policy adherence.",
-        "[[img:/case-studies/tour-house-dashboard.png|Management analytics: volume, trips, passengers and average ticket]]",
-        "I prototyped everything in high fidelity, pixel perfect in Figma, and ran the handoff to the devs.",
-        "## Results",
-        "From discovery to delivery, across more than 17 sprints, I shipped 25+ features over 12 epics, with a handoff that holds the visual and functional fidelity between the prototype and what goes live. The main takeaway was that, in a rule-heavy B2B product, the value of design is in reducing the complexity to simple decisions for each of the three audiences, while keeping the control the company needs to have.",
-      ],
+      cover: { src: "/case-studies/tour-house-busca.webp", alt: "OBT search with an AI assistant" },
+      body: tourHouseCase.en,
     },
   },
 
@@ -520,6 +538,8 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
     pt: {
       title: "Contato",
       role: "Contato",
+      layout: "case",
+      tags: ["Contato"],
       body: [
         "Quer conversar sobre produto, música, pesquisa, design system ou uma ideia meio torta que ainda precisa ganhar trilho? Me chama.",
       ],
@@ -528,6 +548,8 @@ export const portfolioContent: Record<string, Record<ContentLang, StationContent
     en: {
       title: "Contact",
       role: "Contact",
+      layout: "case",
+      tags: ["Contact"],
       body: [
         "Want to talk about product, music, research, design systems or a half-formed idea that still needs a route? Reach out.",
       ],

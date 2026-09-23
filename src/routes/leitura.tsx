@@ -1,7 +1,9 @@
+import { flushSync } from "react-dom";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Moon, Sun } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
-import { CONTENT_LINE_ORDER, getStationContent, readingIntro } from "@/data/portfolioContent";
+import { CONTENT_LINE_ORDER, readingIntro } from "@/data/portfolioContent";
+import { getStationContent } from "@/data/caseEditorial";
 import { groupMedia, mediaHref, mediaLabel, MEDIA_CATEGORY_LABELS } from "@/lib/mediaCategories";
 import {
   getStoredLanguage,
@@ -10,7 +12,7 @@ import {
   setStoredLanguage,
   type ContentLang,
 } from "@/lib/language";
-import { getStoredTheme, setStoredTheme, type MapTheme } from "@/lib/theme";
+import { getStoredTheme, setStoredTheme, type MapTheme, withThemeFade } from "@/lib/theme";
 
 const READING_COPY: Record<
   ContentLang,
@@ -27,21 +29,21 @@ const READING_COPY: Record<
     language: "Idioma",
     themeLight: "Mudar para modo claro",
     themeDark: "Mudar para modo escuro",
-    external: "abre em nova aba",
+    external: "Abre em nova aba",
   },
   en: {
     skip: "Skip to content",
     language: "Language",
     themeLight: "Switch to light mode",
     themeDark: "Switch to dark mode",
-    external: "opens in a new tab",
+    external: "Opens in a new tab",
   },
 };
 
 export const Route = createFileRoute("/leitura")({
   head: () => ({
     meta: [
-      { title: "modo leitura | mat underground club" },
+      { title: "Modo leitura | mat underground club" },
       {
         name: "description",
         content:
@@ -53,8 +55,9 @@ export const Route = createFileRoute("/leitura")({
 });
 
 function ReadingMode() {
-  const [lang, setLang] = useState<ContentLang>(() => getStoredLanguage());
-  const [theme, setTheme] = useState<MapTheme>(() => getStoredTheme());
+  // Server defaults first; stored choices are applied after hydration below.
+  const [lang, setLang] = useState<ContentLang>("pt");
+  const [theme, setTheme] = useState<MapTheme>("dark");
 
   useEffect(() => {
     setLang(getStoredLanguage());
@@ -78,11 +81,15 @@ function ReadingMode() {
   };
 
   const toggleTheme = () => {
-    setTheme((prev) => {
-      const next: MapTheme = prev === "dark" ? "light" : "dark";
-      setStoredTheme(next);
-      return next;
-    });
+    withThemeFade(() =>
+      flushSync(() =>
+        setTheme((prev) => {
+          const next: MapTheme = prev === "dark" ? "light" : "dark";
+          setStoredTheme(next);
+          return next;
+        }),
+      ),
+    );
   };
 
   return (
@@ -153,6 +160,10 @@ function ReadingMode() {
                 </p>
               )}
               {station.body.map((paragraph, i) => {
+                if (paragraph.startsWith("[[placeholder:")) {
+                  const [title, description] = paragraph.slice(14, -2).split("|");
+                  return <p key={i}>{title} — {description}</p>;
+                }
                 if (paragraph.startsWith("## ")) {
                   return (
                     <h3 key={i} className="reading-subhead">
@@ -164,6 +175,7 @@ function ReadingMode() {
                   const [src, alt] = paragraph.slice(6, -2).split("|");
                   return (
                     <figure key={i} className="reading-photo">
+                      <a href={src} target="_blank" rel="noopener noreferrer" aria-label={lang === "en" ? `Open original image: ${alt ?? ""}` : `Abrir imagem original: ${alt ?? ""}`}>
                       <img
                         src={src}
                         alt={alt ?? ""}
@@ -174,6 +186,7 @@ function ReadingMode() {
                           if (fig) fig.style.display = "none";
                         }}
                       />
+                      </a>
                     </figure>
                   );
                 }

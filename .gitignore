@@ -24,6 +24,10 @@ public/**/*.ply
 .wrangler/
 .dev.vars
 
+# Scratch / research material (keep local)
+tmp/
+.tmp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -34,3 +38,13 @@ public/**/*.ply
 *.njsproj
 *.sln
 *.sw?
+
+# Original (pre-WebP) and unused images, archived outside public/ by
+# scripts/optimize-images.py. Kept locally, not deployed.
+assets-src/
+# Raw OpenStreetMap export used to generate src/data/osmBlueprint.ts.
+scripts/sucre_osm.xml
+# Local screenshots
+/current_view.png
+/test*.png
+/Imagem do Codex*.png

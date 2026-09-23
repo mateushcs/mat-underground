@@ -1,0 +1,310 @@
+/* ==========================================================================
+   METROPOLIS ARCHITECTURAL BLUEPRINT & ATMOSPHERE
+   Inspired by Kajetan Rzepecki, Trama Urbana Sucre & Santiago de Cali
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. AMBIENT MOVING GRADIENTS (transform-only motion)
+   Drifting midnight royal blue, blueprint cyan, and deep twilight indigo.
+   -------------------------------------------------------------------------- */
+.map-aurora {
+  position: absolute;
+  inset: -15%;
+  width: 130%;
+  height: 130%;
+  pointer-events: none;
+  overflow: hidden;
+  contain: strict;
+  z-index: 0;
+  opacity: 0.85;
+}
+
+.map-aurora i {
+  position: absolute;
+  border-radius: 50%;
+  /* Radial gradients already have soft edges; no oversized blur surfaces. */
+  filter: none;
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* Primary deep royal blue field */
+.map-aurora i:nth-child(1) {
+  width: 65vw;
+  height: 65vw;
+  left: 10%;
+  top: 5%;
+  background: radial-gradient(circle, #0e3b6e70 0%, #08214240 45%, transparent 70%);
+  animation: bp-aurora-drift-1 38s ease-in-out infinite alternate;
+}
+
+/* Secondary electric cyan beacon (soft glow, not overpowering) */
+.map-aurora i:nth-child(2) {
+  width: 55vw;
+  height: 55vw;
+  right: 8%;
+  bottom: 10%;
+  background: radial-gradient(circle, #0077b640 0%, #00508020 40%, transparent 68%);
+  animation: bp-aurora-drift-2 44s ease-in-out infinite alternate;
+  animation-delay: -12s;
+}
+
+/* Deep twilight indigo undertone */
+.map-aurora i:nth-child(3) {
+  width: 70vw;
+  height: 70vw;
+  left: 30%;
+  top: 35%;
+  background: radial-gradient(circle, #1a205055 0%, #0e123530 45%, transparent 72%);
+  animation: bp-aurora-drift-3 52s ease-in-out infinite alternate;
+  animation-delay: -22s;
+}
+
+/* Subtle warm amber/gold photographic depth (very faint) */
+.map-aurora i:nth-child(4) {
+  width: 35vw;
+  height: 35vw;
+  left: 20%;
+  bottom: 25%;
+  background: radial-gradient(circle, #b8621816 0%, transparent 60%);
+  animation: bp-aurora-drift-1 46s ease-in-out infinite alternate-reverse;
+  animation-delay: -18s;
+}
+
+@keyframes bp-aurora-drift-1 {
+  0% {
+    transform: translate3d(-4%, -3%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, 5%, 0) scale(1.12);
+  }
+  100% {
+    transform: translate3d(2%, -4%, 0) scale(0.96);
+  }
+}
+
+@keyframes bp-aurora-drift-2 {
+  0% {
+    transform: translate3d(5%, 4%, 0) scale(1.08);
+  }
+  50% {
+    transform: translate3d(-5%, -2%, 0) scale(0.94);
+  }
+  100% {
+    transform: translate3d(1%, 6%, 0) scale(1.05);
+  }
+}
+
+@keyframes bp-aurora-drift-3 {
+  0% {
+    transform: translate3d(0%, -5%, 0) scale(0.98);
+  }
+  50% {
+    transform: translate3d(-4%, 4%, 0) scale(1.15);
+  }
+  100% {
+    transform: translate3d(5%, -2%, 0) scale(1.02);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. CITY BLUEPRINT CADASTRE & GEOGRAPHY (Razor Sharp Vector Strokes)
+   -------------------------------------------------------------------------- */
+.city-blueprint {
+  pointer-events: none;
+  user-select: none;
+}
+/* Streets render on a <canvas> (CityBlueprint.tsx), anti-aliased at device pixel ratio. */
+
+/* Keep the base light field static; the aurora supplies the moving layer.
+   Animating background-position here repainted the full viewport every frame. */
+[data-map-theme].map-dot-grid::before {
+  animation: none !important;
+  filter: none !important;
+  will-change: auto;
+}
+
+/* Waterway: River & Canals */
+.bp-water-fill {
+  fill: #0c2d4a;
+  fill-opacity: 0.38;
+}
+
+.bp-water-contour {
+  fill: none;
+  stroke: #4fa3d8;
+  stroke-width: 0.9;
+  stroke-opacity: 0.38;
+}
+
+/* Cadastral Parcels & Building Blocks */
+.bp-parcels {
+  fill: #143554;
+  fill-opacity: 0.08;
+  stroke: #7bbce8;
+  stroke-width: 0.55;
+  stroke-opacity: 0.18;
+}
+
+/* Secondary Street Grid */
+.bp-streets {
+  fill: none;
+  stroke: #6cb0de;
+  stroke-width: 0.45;
+  stroke-opacity: 0.14;
+}
+
+/* Arterial Boulevards & Avenues (Double lines) */
+.bp-arterials {
+  fill: none;
+  stroke: #9ed4fa;
+  stroke-width: 0.85;
+  stroke-opacity: 0.38;
+}
+
+/* Bridges across the River */
+.bp-bridges {
+  fill: #091c2e;
+  stroke: #c2e6ff;
+  stroke-width: 1.1;
+  stroke-opacity: 0.65;
+}
+
+/* Station Civic Plazas & Esplanades */
+.bp-plazas {
+  fill: #0d3456;
+  fill-opacity: 0.12;
+  stroke: #a2daf8;
+  stroke-width: 0.75;
+  stroke-opacity: 0.42;
+}
+
+/* --------------------------------------------------------------------------
+   3. METRO NETWORK RADIANCE (Luminous Neon Glow & Track Bloom)
+   -------------------------------------------------------------------------- */
+.map-network-radiance {
+  pointer-events: none;
+}
+
+.map-network-radiance g {
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.map-radiance-outer {
+  stroke-width: 22;
+  stroke-opacity: 0.07;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.map-radiance-mid {
+  stroke-width: 12;
+  stroke-opacity: 0.16;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.map-radiance-inner {
+  stroke-width: 6;
+  stroke-opacity: 0.28;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Station Interactive Pulse & Neon Ping.
+   Kept static by default: 66 always-on SVG animations forced a full SVG repaint
+   every frame. The ping now runs only while the station is hovered. */
+.map-station-pulse {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.map-focusable:hover .map-station-pulse {
+  animation: map-ping-pulse 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Animate transform + opacity only (compositor-friendly). Animating the SVG
+   `r`/stroke-width geometry forced a full SVG repaint every frame. */
+@keyframes map-ping-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  65% {
+    transform: scale(1.5);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* Station labels stay visible during pan/zoom — the blueprint is simplified
+   instead of hidden, so nothing disappears while moving the map. */
+
+
+/* --------------------------------------------------------------------------
+   5. LIGHT MODE COMPATIBILITY (Drafting Paper / Architectural Cyanotype)
+   -------------------------------------------------------------------------- */
+[data-map-theme="light"] .map-aurora i:nth-child(1) {
+  background: radial-gradient(circle, #bcd9ed66 0%, #d8e9f530 45%, transparent 70%);
+}
+
+[data-map-theme="light"] .map-aurora i:nth-child(2) {
+  background: radial-gradient(circle, #b1d4ed44 0%, transparent 65%);
+}
+
+[data-map-theme="light"] .map-aurora i:nth-child(3) {
+  background: radial-gradient(circle, #ccdbe855 0%, transparent 70%);
+}
+
+[data-map-theme="light"] .bp-water-fill {
+  fill: #c5dded;
+  fill-opacity: 0.45;
+}
+
+[data-map-theme="light"] .bp-water-contour {
+  stroke: #4578a0;
+  stroke-opacity: 0.35;
+}
+
+[data-map-theme="light"] .bp-parcels {
+  fill: #b4cde0;
+  fill-opacity: 0.08;
+  stroke: #4b7498;
+  stroke-opacity: 0.22;
+}
+
+[data-map-theme="light"] .bp-streets {
+  stroke: #597d9e;
+  stroke-opacity: 0.18;
+}
+
+[data-map-theme="light"] .bp-arterials {
+  stroke: #2d5e86;
+  stroke-opacity: 0.4;
+}
+
+[data-map-theme="light"] .bp-bridges {
+  fill: #e8f1f8;
+  stroke: #26557d;
+  stroke-opacity: 0.65;
+}
+
+@media (max-width: 640px) {
+  .map-aurora i:nth-child(4) {
+    display: none;
+  }
+}
+
+
+
+@media (prefers-reduced-motion: reduce) {
+  .map-aurora i {
+    animation: none !important;
+  }
+  .map-station-pulse {
+    animation: none !important;
+  }
+}

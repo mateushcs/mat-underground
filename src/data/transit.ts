@@ -162,7 +162,7 @@ const RAW_LINES: RawLine[] = (
   {
     id: "L3",
     name: "Solv",
-    shortName: "03",
+    shortName: "04",
     color: "line-cobalt",
     kind: "metro",
     pts: [
@@ -174,7 +174,7 @@ const RAW_LINES: RawLine[] = (
   {
     id: "L4",
     name: "Terapio",
-    shortName: "04",
+    shortName: "05",
     color: "line-lime",
     kind: "metro",
     pts: [
@@ -186,7 +186,7 @@ const RAW_LINES: RawLine[] = (
   {
     id: "L5",
     name: "Musicas",
-    shortName: "05",
+    shortName: "06",
     color: "line-cyan",
     kind: "metro",
     pts: [
@@ -200,7 +200,7 @@ const RAW_LINES: RawLine[] = (
     // so it now renders as a grey auxiliary line (kept for map topology/transfers).
     id: "L6",
     name: "Ludus",
-    shortName: "06",
+    shortName: "09",
     color: "line-grey",
     kind: "metro",
     pts: [
@@ -212,7 +212,7 @@ const RAW_LINES: RawLine[] = (
   },
   {
     id: "L7",
-    name: "Créditos",
+    name: "Créditos & Recs",
     shortName: "07",
     color: "line-orange",
     kind: "metro",
@@ -242,7 +242,7 @@ const RAW_LINES: RawLine[] = (
     // solid metro line in teal.
     id: "L9",
     name: "Tour House",
-    shortName: "09",
+    shortName: "03",
     color: "line-teal",
     kind: "metro",
     pts: [

@@ -6,8 +6,8 @@ export function renderErrorPage(): string {
     <title>This page didn't load</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
-      @font-face { font-family: Satoshi; src: url("/fonts/satoshi/Satoshi-Variable.woff2") format("woff2"); font-weight: 300 900; font-style: normal; font-display: swap; }
-      body { font: 15px/1.5 Satoshi, system-ui, -apple-system, sans-serif; background: #fafafa; color: #111; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
+      @font-face { font-family: "Switzer"; src: url("/fonts/switzer/Switzer-Variable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+      body { font: 15px/1.5 "Switzer", "Helvetica Neue", Helvetica, Arial, sans-serif; background: #fafafa; color: #111; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
       .card { max-width: 28rem; width: 100%; text-align: center; padding: 2rem; }
       h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
       p { color: #4b5563; margin: 0 0 1.5rem; }

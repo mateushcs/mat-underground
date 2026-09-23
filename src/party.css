@@ -1,0 +1,249 @@
+/* ==========================================================================
+   PARTY MODE (easter egg, see PartyMode.tsx)
+   --party-beat: 1 on each beat, decaying to 0. [data-party-beat]: 0-3 per bar.
+   ========================================================================== */
+.party { position: fixed; inset: 0; z-index: 9990; pointer-events: none; }
+.party-sparks { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Sweeping stage lights */
+.party-lights { position: absolute; inset: 0; overflow: hidden; mix-blend-mode: screen; opacity: calc(0.35 + var(--party-beat, 0) * 0.35); }
+.party-lights i {
+  position: absolute;
+  left: 50%;
+  top: -40vmax;
+  width: 160vmax;
+  height: 160vmax;
+  margin-left: -80vmax;
+  background: conic-gradient(from 0deg, transparent 0 40%, rgba(159, 184, 255, 0.55) 44%, transparent 48% 60%, rgba(255, 179, 228, 0.5) 63%, transparent 67% 100%);
+  animation: party-sweep 6s linear infinite;
+}
+.party-lights i:nth-child(2) {
+  background: conic-gradient(from 90deg, transparent 0 30%, rgba(179, 255, 240, 0.45) 33%, transparent 37% 75%, rgba(255, 226, 174, 0.45) 78%, transparent 82% 100%);
+  animation-duration: 9s;
+  animation-direction: reverse;
+}
+.party-lights i:nth-child(3) {
+  top: auto;
+  bottom: -40vmax;
+  background: conic-gradient(from 200deg, transparent 0 45%, rgba(194, 177, 255, 0.5) 49%, transparent 53% 100%);
+  animation-duration: 7s;
+}
+@keyframes party-sweep { to { transform: rotate(360deg); } }
+
+/* Elements pulsing and flashing on the beat (colour swaps, never faster than the beat). */
+html[data-party="on"] .station-case .case-title,
+html[data-party="on"] .station-case .case-section-head h2 {
+  transform: scale(calc(1 + var(--party-beat, 0) * 0.025));
+  transform-origin: left center;
+  text-shadow: 0 0 calc(var(--party-beat, 0) * 24px) rgba(194, 177, 255, 0.9);
+}
+html[data-party="on"][data-party-beat="0"] .station-case :is(.case-title, .case-section-head h2, .case-wheel li button) { color: #9fb8ff; }
+html[data-party="on"][data-party-beat="1"] .station-case :is(.case-title, .case-section-head h2, .case-wheel li button) { color: #ffb3e4; }
+html[data-party="on"][data-party-beat="2"] .station-case :is(.case-title, .case-section-head h2, .case-wheel li button) { color: #b3fff0; }
+html[data-party="on"][data-party-beat="3"] .station-case :is(.case-title, .case-section-head h2, .case-wheel li button) { color: #ffe2ae; }
+html[data-party="on"] .station-case :is(.case-visual, .case-brief, .case-figure, .case-results-grid) {
+  box-shadow: 0 0 calc(var(--party-beat, 0) * 40px) rgba(159, 184, 255, 0.45);
+}
+html[data-party="on"] .station-case .case-cover > img { filter: saturate(calc(1 + var(--party-beat, 0) * 0.8)) hue-rotate(calc(var(--party-beat, 0) * 40deg)); }
+html[data-party="on"] .case-wheel-cd { animation: party-disc 0.8s linear infinite; }
+@keyframes party-disc { to { rotate: 360deg; } }
+
+/* Reduced motion: music plus a soft, steady glow; no sweeps or flashes. */
+html[data-party="calm"] .party-lights { opacity: 0.25; }
+html[data-party="calm"] .party-lights i { animation: none; }
+
+/* --------------------------------------------------------------------------
+   Screen edges flashing on the beat
+   -------------------------------------------------------------------------- */
+.party-frame {
+  position: absolute;
+  inset: 0;
+  border: 8px solid #9fb8ff;
+  box-shadow: inset 0 0 calc(20px + var(--party-beat, 0) * 70px) rgba(159, 184, 255, 0.85);
+  opacity: calc(0.3 + var(--party-beat, 0) * 0.7);
+}
+html[data-party-beat="1"] .party-frame { border-color: #ffb3e4; box-shadow: inset 0 0 calc(20px + var(--party-beat, 0) * 70px) rgba(255, 179, 228, 0.85); }
+html[data-party-beat="2"] .party-frame { border-color: #b3fff0; box-shadow: inset 0 0 calc(20px + var(--party-beat, 0) * 70px) rgba(179, 255, 240, 0.85); }
+html[data-party-beat="3"] .party-frame { border-color: #ffe2ae; box-shadow: inset 0 0 calc(20px + var(--party-beat, 0) * 70px) rgba(255, 226, 174, 0.85); }
+
+/* --------------------------------------------------------------------------
+   Monsters dancing and jumping along the bottom
+   -------------------------------------------------------------------------- */
+.party-monsters {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: flex-end;
+}
+.party-monster {
+  width: clamp(40px, 5.4vw, 68px);
+  transform-origin: 50% 100%;
+  animation: monster-hop var(--party-beat-s, 0.484s) cubic-bezier(0.3, 0, 0.5, 1) infinite;
+  animation-delay: calc(var(--m) * var(--party-beat-s, 0.484s) * 0.5);
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+}
+.party-monster.kind-tall { width: clamp(40px, 5.4vw, 68px); }
+.party-monster.kind-tiny { width: clamp(30px, 3.8vw, 48px); }
+.party-monster.move-spin { animation-name: monster-hop-spin; animation-duration: calc(var(--party-beat-s, 0.484s) * 2); }
+.party-monster.move-float { animation: monster-float calc(var(--party-beat-s, 0.484s) * 4) ease-in-out infinite; }
+.party-monster.move-drink { animation: monster-sway calc(var(--party-beat-s, 0.484s) * 2) ease-in-out infinite; }
+.party-monster.move-nod { animation: monster-nod var(--party-beat-s, 0.484s) ease-in-out infinite; }
+.party-monster.move-bounce { animation: monster-hop calc(var(--party-beat-s, 0.484s) / 2) cubic-bezier(0.3, 0, 0.5, 1) infinite; }
+.party-monster svg { display: block; width: 100%; height: auto; overflow: visible; }
+.party-monster .monster-arm { transform-box: fill-box; animation: monster-wave calc(var(--party-beat-s, 0.484s) * 2) ease-in-out infinite; }
+.party-monster .monster-arm-l { transform-origin: 100% 0; }
+.party-monster .monster-arm-r { transform-origin: 0 0; animation-direction: reverse; }
+.party-monster .monster-leg { transform-box: fill-box; transform-origin: 50% 0; animation: monster-kick var(--party-beat-s, 0.484s) ease-in-out infinite alternate; }
+.party-monster .monster-leg-r { animation-direction: alternate-reverse; }
+.party-monster .monster-eyes { transform-box: fill-box; transform-origin: center; animation: monster-blink 2.6s steps(1) infinite; animation-delay: calc(var(--m) * 0.37s); }
+.party-monster .monster-antenna { transform-box: fill-box; transform-origin: 50% 100%; animation: monster-wave var(--party-beat-s, 0.484s) ease-in-out infinite alternate; }
+.party-monster .monster-sip { transform-box: fill-box; transform-origin: 50% 100%; animation: monster-sip calc(var(--party-beat-s, 0.484s) * 4) ease-in-out infinite; }
+.party-monster .monster-phones { transform-box: fill-box; transform-origin: center; animation: monster-nod var(--party-beat-s, 0.484s) ease-in-out infinite; }
+.party-monster .ghost-hem { animation: ghost-hem calc(var(--party-beat-s, 0.484s) / 2) steps(2) infinite; }
+@keyframes monster-float { 0%, 100% { transform: translateY(-10%) rotate(-6deg); } 50% { transform: translateY(-35%) rotate(6deg); } }
+@keyframes monster-sway { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+@keyframes monster-nod { 0%, 100% { transform: translateY(0) rotate(0); } 40% { transform: translateY(6%) rotate(-5deg); } }
+@keyframes monster-sip { 0%, 55%, 100% { transform: rotate(0); } 65%, 90% { transform: translate(-40%, 10%) rotate(-50deg); } }
+@keyframes ghost-hem { to { transform: translateX(2px); } }
+@keyframes monster-hop {
+  0%, 100% { transform: translateY(0) scale(1.08, 0.9); }
+  30% { transform: translateY(-38%) scale(0.94, 1.08); }
+  60% { transform: translateY(-8%) scale(1, 1); }
+}
+@keyframes monster-hop-spin {
+  0%, 100% { transform: translateY(0) rotate(0) scale(1.08, 0.9); }
+  25% { transform: translateY(-55%) rotate(-12deg) scale(0.94, 1.08); }
+  50% { transform: translateY(0) rotate(0) scale(1.06, 0.92); }
+  75% { transform: translateY(-35%) rotate(12deg) scale(0.96, 1.05); }
+}
+@keyframes monster-wave { 0%, 100% { transform: rotate(-35deg); } 50% { transform: rotate(35deg); } }
+@keyframes monster-kick { from { transform: rotate(-18deg); } to { transform: rotate(18deg); } }
+@keyframes monster-blink { 0%, 92% { transform: scaleY(1); } 94%, 100% { transform: scaleY(0.1); } }
+
+/* --------------------------------------------------------------------------
+   Letters and interface elements dancing with the music
+   -------------------------------------------------------------------------- */
+.party-letter { display: inline-block; }
+.party-letter.is-space { width: 0.28em; }
+/* A single letter of the text hops out of line, flashes iridescent and lands. */
+.party-letter.is-hop {
+  position: relative;
+  z-index: 1;
+  animation: party-letter-hop 0.5s cubic-bezier(0.3, 0, 0.3, 1);
+  color: var(--hop-color, #c2b1ff);
+  text-shadow: 0 0 10px var(--hop-color, #c2b1ff);
+}
+@keyframes party-letter-hop {
+  0% { transform: translateY(0) rotate(0) scale(1); }
+  40% { transform: translateY(-0.7em) rotate(-14deg) scale(1.35); }
+  70% { transform: translateY(0.05em) rotate(6deg) scale(0.95); }
+  100% { transform: translateY(0) rotate(0) scale(1); }
+}
+html[data-party="on"] .station-case :is(
+  .case-tags li,
+  .case-meta-item,
+  .case-brief dl > div,
+  .case-section-body p,
+  .case-visual,
+  .case-figure,
+  .case-result,
+  .case-sign,
+  .credits-card,
+  .recommendation-card,
+  .case-back,
+  .case-controls
+) {
+  animation: party-bop calc(var(--party-beat-s, 0.484s) * 2) ease-in-out infinite;
+}
+html[data-party="on"] .station-case :is(.case-tags li, .case-meta-item, .case-brief dl > div, .case-result, .credits-card, .recommendation-card, .case-sign):nth-child(even) { animation-direction: reverse; }
+html[data-party="on"] .station-case .case-section-body p:nth-child(even) { animation-name: party-sway; }
+html[data-party="on"] .station-case :is(.case-visual, .case-figure) { animation-name: party-pulse; animation-duration: var(--party-beat-s, 0.484s); }
+@keyframes party-bop {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-6px) rotate(-1.5deg); }
+  50% { transform: translateY(0) rotate(0); }
+  75% { transform: translateY(-6px) rotate(1.5deg); }
+}
+@keyframes party-sway {
+  0%, 100% { transform: translateX(0) skewX(0); }
+  25% { transform: translateX(-8px) skewX(3deg); }
+  75% { transform: translateX(8px) skewX(-3deg); }
+}
+@keyframes party-pulse {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.02); }
+}
+
+html[data-party="calm"] .party-frame { opacity: 0.35; }
+html[data-party="calm"] .party-monster,
+html[data-party="calm"] .party-monster * { animation: none; }
+
+/* --------------------------------------------------------------------------
+   More lights: colour wash, corner spots, sweeping lasers
+   -------------------------------------------------------------------------- */
+.party-flood {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 100%, rgba(159, 184, 255, 0.35), transparent 60%);
+  opacity: calc(0.25 + var(--party-beat, 0) * 0.35);
+  mix-blend-mode: screen;
+}
+html[data-party-beat="1"] .party-flood { background: radial-gradient(120% 90% at 20% 0%, rgba(255, 179, 228, 0.35), transparent 60%); }
+html[data-party-beat="2"] .party-flood { background: radial-gradient(120% 90% at 80% 0%, rgba(179, 255, 240, 0.32), transparent 60%); }
+html[data-party-beat="3"] .party-flood { background: radial-gradient(120% 90% at 50% 50%, rgba(255, 226, 174, 0.3), transparent 60%); }
+.party-spots { position: absolute; inset: 0; mix-blend-mode: screen; }
+.party-spots i {
+  position: absolute;
+  top: -10vh;
+  width: 60vmax;
+  height: 130vh;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(194, 177, 255, 0.18) 55%, transparent 90%);
+  clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+  filter: blur(6px);
+  transform-origin: 50% 0;
+  opacity: calc(0.35 + var(--party-beat, 0) * 0.4);
+}
+.party-spots i:nth-child(1) { left: -22vmax; animation: party-spot-l 3.8s ease-in-out infinite alternate; }
+.party-spots i:nth-child(2) { right: -22vmax; animation: party-spot-r 4.4s ease-in-out infinite alternate; background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(179, 255, 240, 0.18) 55%, transparent 90%); }
+@keyframes party-spot-l { from { transform: rotate(-38deg); } to { transform: rotate(-4deg); } }
+@keyframes party-spot-r { from { transform: rotate(38deg); } to { transform: rotate(4deg); } }
+.party-lasers { position: absolute; left: 50%; bottom: -2vh; width: 0; height: 0; mix-blend-mode: screen; }
+.party-lasers i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 150vmax;
+  height: 2px;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), rgba(159, 184, 255, 0.8) 30%, transparent 75%);
+  box-shadow: 0 0 10px rgba(159, 184, 255, 0.9);
+  animation: party-laser calc(2.6s + var(--l) * 0.35s) ease-in-out infinite alternate;
+  animation-delay: calc(var(--l) * -0.45s);
+}
+.party-lasers i:nth-child(even) { background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), rgba(255, 179, 228, 0.8) 30%, transparent 75%); box-shadow: 0 0 10px rgba(255, 179, 228, 0.9); }
+@keyframes party-laser { from { transform: rotate(-172deg); } to { transform: rotate(-8deg); } }
+
+html[data-party="calm"] :is(.party-spots, .party-lasers) { display: none; }
+html[data-party="calm"] .party-flood { opacity: 0.2; }
+
+/* Monsters pace from side to side along the bottom, turning to face the way
+   they walk. Speed and range vary per monster (--m). */
+.party-walker {
+  --walk: calc(6vw + var(--m) * 1.6vw);
+  animation: monster-walk calc(5s + var(--m) * 0.9s) linear infinite;
+  animation-delay: calc(var(--m) * -1.3s);
+}
+@keyframes monster-walk {
+  0% { transform: translateX(calc(var(--walk) * -1)) scaleX(1); }
+  49.9% { transform: translateX(var(--walk)) scaleX(1); }
+  50% { transform: translateX(var(--walk)) scaleX(-1); }
+  99.9% { transform: translateX(calc(var(--walk) * -1)) scaleX(-1); }
+  100% { transform: translateX(calc(var(--walk) * -1)) scaleX(1); }
+}
+html[data-party="calm"] .party-walker { animation: none; }
+html[data-perf="lite"] .party-spots i { filter: none; }
+html[data-perf="lite"] .party-lasers i { box-shadow: none; }
+html[data-perf="lite"] .party-monster { filter: none; }

@@ -84,8 +84,8 @@
 @layer theme {
   :root,
   :host {
-    --font-sans: "Satoshi", system-ui, -apple-system, sans-serif;
-    --font-mono: "Satoshi", system-ui, -apple-system, sans-serif;
+    --font-sans: "Switzer", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-mono: "Switzer", "Helvetica Neue", Helvetica, Arial, sans-serif;
     --color-black: #000;
     --spacing: 0.25rem;
     --container-sm: 24rem;
@@ -115,12 +115,12 @@
     --aspect-video: 16 / 9;
     --default-transition-duration: 0.15s;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    --default-font-family: "Satoshi", system-ui, -apple-system, sans-serif;
-    --default-mono-font-family: "Satoshi", system-ui, -apple-system, sans-serif;
+    --default-font-family: "Switzer", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --default-mono-font-family: "Switzer", "Helvetica Neue", Helvetica, Arial, sans-serif;
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-border: var(--border);
-    --font-display: "Satoshi", system-ui, -apple-system, sans-serif;
+    --font-display: "Switzer", "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
 }
 @layer base {
@@ -1291,19 +1291,11 @@
     vertical-align: middle;
   }
   .font-display {
-    font-family:
-      Satoshi,
-      system-ui,
-      -apple-system,
-      sans-serif;
+    font-family: "Switzer", "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
   .font-mono,
   .font-sans {
-    font-family:
-      Satoshi,
-      system-ui,
-      -apple-system,
-      sans-serif;
+    font-family: "Switzer", "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
   .text-7xl {
     font-size: var(--text-7xl);
@@ -2859,6 +2851,10 @@
   inherits: false;
   initial-value: 0;
 }
+/* Switzer (Fontshare, ITF Free Font License: free for commercial use, self-hosting
+   allowed). Variable font, weights 100-900. */
+@font-face { font-family: "Switzer"; src: url(/fonts/switzer/Switzer-Variable.woff2) format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Switzer"; src: url(/fonts/switzer/Switzer-VariableItalic.woff2) format("woff2"); font-weight: 100 900; font-style: italic; font-display: swap; }
 /* Satoshi (Fontshare) — variable font, weights 300–900, full Latin incl.
    Portuguese accents. Replaces the old Graphik trial cut, which shipped with no
    accented glyphs (ç/ã/õ/é fell back to the system font mid-word). */

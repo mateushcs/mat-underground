@@ -1,0 +1,371 @@
+/* ==========================================================================
+   CASE LAYER: square geometry, holographic accents, CD dial, credits, signage.
+   Imported by the station route right after case-study.css so it wins ties.
+   ========================================================================== */
+
+:root {
+  --holo: linear-gradient(100deg, #9fb8ff 0%, #c2b1ff 17%, #ffb3e4 33%, #ffe2ae 49%, #b3fff0 65%, #9ad6ff 82%, #c2b1ff 100%);
+  --holo-deep: linear-gradient(100deg, #4f63ff 0%, #8e4ff0 20%, #d9479b 38%, #c98522 55%, #1e9f8c 72%, #2f7fe0 88%, #8e4ff0 100%);
+  --holo-conic: conic-gradient(from 12deg, #130b26, #3b2a8f 8%, #2f7de0 16%, #a6ecff 22%, #f6dfb8 28%, #d56ac8 36%, #3b2a8f 46%, #0e0a1d 52%, #34288a 60%, #4fa8ff 68%, #c9f4ff 73%, #ffdcb3 79%, #b25ad8 87%, #130b26);
+}
+
+
+/* --------------------------------------------------------------------------
+   4. CASE PAGES: square geometry + holographic accents
+   -------------------------------------------------------------------------- */
+html body .station-page.station-case {
+  --station-accent: #b9a8ff !important;
+  /* Neutral greys (the old tokens leaned green). */
+  --case-bg: #0b0c0f;
+  --case-text: #ececef;
+  --case-muted: #b0b2b9;
+  --case-panel: #16171b;
+  --case-border: rgba(255, 255, 255, 0.12);
+}
+html body .station-page.station-case[data-case-theme="light"] {
+  --station-accent: #6a4fe0 !important;
+  --holo: var(--holo-deep);
+  --case-bg: #f3f3f5;
+  --case-text: #1e2026;
+  --case-muted: #5a5d66;
+  --case-panel: #e8e9ed;
+  --case-border: rgba(20, 22, 30, 0.16);
+}
+
+/* Everything square, except the rotary CD dial and its dots. */
+.station-case :not(.case-wheel, .case-wheel *),
+.station-case :not(.case-wheel, .case-wheel *)::before,
+.station-case :not(.case-wheel, .case-wheel *)::after { border-radius: 0 !important; }
+
+/* Holographic text accents */
+.station-case :is(
+  .case-brief-heading > span:last-child,
+  .case-result strong,
+  .case-outcomes--stats .case-stat
+) {
+  background: var(--holo);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* Small labels: solid, readable tints (gradients break down at this size). */
+.station-case :is(.case-section-index, .case-process-number, .case-flow-index, .credits-index) { color: var(--case-muted); }
+.station-case :is(.case-eyebrow, .case-brief dt, .case-placeholder-marker, .case-network-arrow) { color: #cabfff; }
+.station-case[data-case-theme="light"] :is(.case-eyebrow, .case-brief dt, .case-placeholder-marker, .case-network-arrow) { color: #5a42d4; }
+
+/* Holographic icon strokes (gradient defined once in the page, userSpaceOnUse 0-24). */
+.station-case :is(.case-icon, .case-process figcaption svg, .case-process-arrow svg) { stroke: url(#holo-stroke); }
+/* Holographic fills */
+.station-case :is(
+  .case-choice-row button[aria-pressed="true"],
+  .case-tagsflow-tags button[aria-pressed="true"],
+  .case-tagsflow-cards em.is-on,
+  .case-player-actions span:last-child
+) {
+  background: var(--holo) !important;
+  border-color: transparent !important;
+  color: #0b0c10 !important;
+}
+.station-case :is(
+  .case-choice-row button[aria-pressed="true"],
+  .case-tagsflow-tags button[aria-pressed="true"],
+  .case-player-actions span:last-child
+) :is(svg, .case-icon) { stroke: currentColor !important; color: #0b0c10 !important; }
+.station-case :is(.case-signal-bars span, .case-player-bar span) { background: #7f9cff !important; }
+.station-case[data-case-theme="light"] :is(.case-signal-bars span, .case-player-bar span) { background: #3f63d8 !important; }
+.station-case .case-result-icon { display: block; width: 24px; height: 24px; margin-bottom: 0.2rem; }
+.station-case .case-network-hub { border: 1px solid transparent; border-image: var(--holo) 1; }
+.station-case .case-flow-steps button[aria-pressed="true"] { border-top: 1px solid transparent; border-image: var(--holo) 1; }
+
+/* tldr: compact summary block */
+.station-case .case-brief {
+  position: relative;
+  margin: 1.5rem 0;
+  max-width: 980px;
+  background: var(--case-panel);
+  border: 1px solid var(--case-border);
+  overflow: visible;
+}
+.station-case .case-brief::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: -1px;
+  height: 2px;
+  background: var(--holo);
+}
+.station-case .case-brief-heading { padding: 0.6rem 1rem; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; }
+.station-case .case-brief-heading > span:last-child { font-size: 0.95rem; letter-spacing: 0; }
+.station-case .case-brief dl > div { padding: 0.9rem 1rem 1rem; }
+.station-case .case-brief dt { margin-bottom: 0.45rem; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+.station-case .case-brief dd { font-size: 0.9rem; line-height: 1.55; }
+.station-case .case-brief-results { background: transparent; }
+
+/* --------------------------------------------------------------------------
+   5. ROTARY DIAL AS A CD
+   -------------------------------------------------------------------------- */
+.case-wheel-cd,
+.case-wheel-glare {
+  position: absolute;
+  left: -146px;
+  top: 87px;
+  width: 236px;
+  height: 236px;
+  border-radius: 50%;
+}
+.case-wheel-cd {
+  transform: rotate(var(--cd-rot, 0deg));
+  transition: transform 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22), 0 22px 50px rgba(0, 0, 0, 0.45);
+  -webkit-mask: radial-gradient(circle, transparent 0 6.6%, #000 6.9%);
+  mask: radial-gradient(circle, transparent 0 6.6%, #000 6.9%);
+  opacity: 0.92;
+}
+.case-wheel-foil {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 6.9%, rgba(255, 255, 255, 0.22) 6.9% 7.6%, rgba(8, 9, 14, 0.62) 7.6% 15%, rgba(255, 255, 255, 0.35) 15% 15.6%, transparent 15.7%),
+    repeating-radial-gradient(circle, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 3px),
+    var(--holo-conic);
+}
+/* Fixed reflection: stays put while the disc turns, so the foil shimmers. */
+.case-wheel-glare {
+  pointer-events: none;
+  background: conic-gradient(from 210deg, transparent 0 8%, rgba(255, 255, 255, 0.36) 12%, transparent 19% 58%, rgba(255, 255, 255, 0.18) 63%, transparent 70%);
+  mix-blend-mode: screen;
+  -webkit-mask: radial-gradient(circle, transparent 0 15.7%, #000 16%);
+  mask: radial-gradient(circle, transparent 0 15.7%, #000 16%);
+}
+.case-wheel li { z-index: 1; }
+.case-wheel .case-wheel-cd { pointer-events: auto; cursor: grab; touch-action: none; }
+.case-wheel.is-dragging .case-wheel-cd { cursor: grabbing; }
+.case-wheel.is-dragging .case-wheel-cd,
+.case-wheel.is-dragging li { transition: none !important; }
+.case-wheel.is-spinning li button { pointer-events: none; }
+.case-wheel li button[aria-current] .case-wheel-label {
+  background: linear-gradient(100deg, #9fb8ff, #c2b1ff, #ffb3e4, #ffe2ae, #b3fff0, #9ad6ff, #c2b1ff, #9fb8ff);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: holo-shift 4s linear infinite;
+}
+.station-case[data-case-theme="light"] .case-wheel li button[aria-current] .case-wheel-label {
+  background-image: linear-gradient(100deg, #4f63ff, #8e4ff0, #d9479b, #c98522, #1e9f8c, #2f7fe0, #8e4ff0, #4f63ff);
+}
+@keyframes holo-shift { to { background-position: 300% 0; } }
+@media (prefers-reduced-motion: reduce) { .case-wheel li button[aria-current] .case-wheel-label { animation: none; } }
+/* Tighter arc spacing: every section stays on screen. */
+.case-wheel li button { padding: 4px 0; font-size: 0.95rem; }
+.case-wheel li button[aria-current] { font-weight: 650; }
+.station-case .case-body--plain { grid-template-columns: minmax(0, 1fr); }
+.case-wheel li button[aria-current] .case-wheel-dot { background: var(--holo); box-shadow: 0 0 12px rgba(190, 170, 255, 0.8); }
+.case-wheel-instrument .case-wheel-pointer { stroke-width: 2; }
+@media (prefers-reduced-motion: reduce) { .case-wheel-cd { transition: none; } }
+
+/* --------------------------------------------------------------------------
+   6. CRÉDITOS & RECS: liner notes (side A) + recommendations (side B)
+   -------------------------------------------------------------------------- */
+.credits { display: grid; gap: clamp(3.5rem, 7vw, 6rem); margin-top: clamp(2.5rem, 5vw, 4rem); }
+.credits-head { display: grid; gap: 0.9rem; max-width: 62ch; margin-bottom: 1.8rem; }
+.credits-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--case-muted);
+}
+.credits-eyebrow i { width: 24px; height: 1px; background: var(--holo); }
+.credits-head h2 { margin: 0; font-size: clamp(2.2rem, 5vw, 3.6rem); font-weight: 600; letter-spacing: -0.04em; line-height: 1; color: var(--case-text); }
+.credits-intro { margin: 0; font-size: 1.1rem; line-height: 1.65; color: var(--case-text); }
+
+.credits-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1px;
+  background: var(--case-border);
+  border: 1px solid var(--case-border);
+}
+.credits-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-height: 230px;
+  padding: 1.4rem 1.4rem 1.3rem;
+  background: var(--case-bg);
+  transition: background-color 0.3s ease;
+}
+/* Holographic foil strip, like the printed edge of a CD booklet. */
+.credits-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: var(--holo);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.credits-card:hover { background: var(--case-panel); }
+.credits-card:hover::after { opacity: 1; }
+.credits-card-top { display: flex; align-items: center; justify-content: space-between; }
+.credits-index { font-size: 0.7rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
+.credits-role { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--case-muted); }
+.credits-name { margin-top: auto; font-size: 1.55rem; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; color: var(--case-text); }
+.credits-card p { margin: 0; font-size: 0.95rem; line-height: 1.55; color: var(--case-muted); }
+.credits-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: max-content;
+  margin-top: 0.3rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid transparent;
+  border-image: var(--holo) 1;
+  color: var(--case-text);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.credits-link:hover { background: var(--case-panel); }
+.credits-link:focus-visible, .credits .recommendation-card:focus-visible { outline: 2px solid var(--station-accent); outline-offset: 3px; }
+
+/* Side B: media grid */
+.credits .station-media { gap: 2.4rem; margin-top: 0; }
+.credits .station-media-section { gap: 1rem; }
+.credits .station-media-heading { color: var(--case-muted); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.22em; }
+.credits .spotify-embed-stack { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+.credits .spotify-embed { box-shadow: 0 0 0 1px var(--case-border); }
+.credits .recommendation-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+.credits .recommendation-card {
+  position: relative;
+  border: 1px solid var(--case-border);
+  background: var(--case-bg);
+  color: var(--case-text);
+}
+.credits .recommendation-card::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: -1px;
+  height: 2px;
+  background: var(--holo);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.credits .recommendation-card:hover { background: var(--case-panel); border-color: var(--case-border); transform: translateY(-2px); }
+.credits .recommendation-card:hover::after { opacity: 1; }
+.credits .recommendation-cover { aspect-ratio: 4 / 5; }
+.credits .recommendation-card-film .recommendation-cover { filter: saturate(0.92) contrast(1.04); }
+.credits .recommendation-book-cover {
+  background:
+    linear-gradient(115deg, transparent 28%, rgba(160, 130, 255, 0.4) 42%, rgba(255, 170, 225, 0.32) 50%, rgba(255, 220, 170, 0.32) 58%, rgba(150, 245, 230, 0.34) 66%, transparent 80%),
+    linear-gradient(160deg, #1b1d24, #07080b);
+  color: rgba(255, 255, 255, 0.72);
+}
+.credits .recommendation-book-cover strong { color: #fff; font-weight: 700; letter-spacing: -0.02em; }
+.credits .recommendation-info { padding: 1rem 1.1rem 1.2rem; }
+.credits .recommendation-kind { display: none; }
+.credits .recommendation-info h3 { color: var(--case-text); font-family: inherit; font-size: 1.3rem; font-weight: 600; letter-spacing: -0.025em; line-height: 1.1; margin: 0 0 0.3rem; }
+.credits .recommendation-info p { color: var(--case-muted); font-size: 0.9rem; line-height: 1.5; }
+.credits .recommendation-info p.recommendation-meta { margin: 0; color: var(--case-muted); font-size: 0.6rem; font-weight: 700; line-height: 1.5; letter-spacing: 0.16em; text-transform: uppercase; }
+@media (prefers-reduced-motion: reduce) {
+  .credits-card, .credits-card::after, .credits .recommendation-card { transition: none; }
+}
+
+/* --------------------------------------------------------------------------
+   7. END-OF-CASE METRO SIGNAGE
+   -------------------------------------------------------------------------- */
+/* Map line colours (dark map palette) so sign badges match the map and menu. */
+.station-case {
+  --line-red: #ff2035; --line-cobalt: #2f78ff; --line-cyan: #00c8e8; --line-teal: #7da09a;
+  --line-yellow: #e5cf48; --line-orange: #ff8810; --line-magenta: #a77996; --line-lime: #bae830;
+  --line-violet: #8a78a8; --line-green: #10d460; --line-pink: #ff3fa0; --line-grey: #b8c2cc;
+}
+.station-case .case-signs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0;
+  margin-top: 1.5rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  position: relative;
+}
+.station-case .case-signs::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: -1px;
+  height: 2px;
+  background: var(--holo);
+}
+.station-case .case-sign {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 76px;
+  padding: 0.9rem 1rem;
+  background: transparent;
+  color: #f4f4f6;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+.station-case .case-signs--top { width: max-content; min-width: 220px; margin: 0 0 1.6rem; }
+.station-case .case-signs--pair { width: min(100%, 620px); margin-left: auto; }
+.station-case .case-sign--next { justify-content: flex-end; text-align: right; }
+.station-case .case-sign + .case-sign { border-left: 1px solid rgba(255, 255, 255, 0.28); }
+.station-case .case-sign:hover { background: rgba(255, 255, 255, 0.08); }
+.station-case .case-sign-arrow { flex: none; width: 30px; height: 30px; transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.station-case .case-sign--map:hover .case-sign-arrow { transform: translateX(-3px); }
+.station-case .case-sign--prev:hover .case-sign-arrow { transform: translate(-2px, -2px); }
+.station-case .case-sign--next:hover .case-sign-arrow { transform: translateX(3px); }
+.station-case .case-sign-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.station-case .case-sign-text small { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9a9ca4; }
+.station-case .case-sign-text strong { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.station-case .case-sign-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+}
+.station-case .case-sign:first-child .case-sign-badge { margin-left: auto; }
+.station-case .case-sign--next .case-sign-badge { margin-left: 0; margin-right: auto; }
+.station-case .case-sign:focus-visible { outline: 2px solid var(--station-accent); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) { .station-case .case-sign-arrow { transition: none; } }
+
+/* Case controls: back button and PT/EN/theme bar share one height and frame. */
+.station-case .case-back { height: 36px; padding: 0 0.95rem; }
+.station-case .case-controls { height: 36px; padding: 0; gap: 0; }
+.station-case .case-controls > div { padding-right: 0; }
+.station-case .case-controls button { height: 34px; min-width: 38px; font-weight: 700; }
+
+/* Sobre mim: a single prose section, no chapter number. */
+.station-case .case-body--plain .case-section-index { display: none; }
+
+/* Footer signs: text and arrows only (no frame, no holographic edge, no badges). */
+.station-case .case-signs { border: 0; }
+.station-case .case-signs::before { content: none; }
+.station-case .case-sign + .case-sign { border-left: 0; }
+.station-case .case-sign { padding-inline: 0.6rem; }
+.station-case .case-sign:hover { background: transparent; }
+.station-case .case-sign:hover .case-sign-text strong { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+.station-case .case-sign-badge { display: none; }
+.station-case .case-signs--top .case-sign { padding-inline: 0; }

@@ -1,22 +1,17 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
-  createRootRouteWithContext,
+  createRootRoute,
   useRouter,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { lazy, Suspense, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/react";
 
 import appCss from "../styles.css?url";
 import { RouteTransitionProvider } from "@/components/RouteTransition";
-import { useViewMode } from "@/lib/viewMode";
-
-const SplatStage = lazy(() =>
-  import("@/components/SplatStage").then((module) => ({ default: module.SplatStage })),
-);
+import { CustomCursor } from "@/components/CustomCursor";
 
 function NotFoundComponent() {
   return (
@@ -75,7 +70,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -110,9 +105,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
+        {/* Low-power tier before first paint (mirrors isLowPowerDevice in lib/perf). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var n=navigator,c=n.hardwareConcurrency||8,m=n.deviceMemory||8;if(c<=4||m<=4||(n.connection&&n.connection.saveData))document.documentElement.dataset.perf='lite'}catch(e){}",
+          }}
+        />
       </head>
       <body>
         {children}
@@ -123,29 +125,12 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function SplatStageGate() {
-  const mode = useViewMode();
-  if (mode !== "3d") return null;
-  return (
-    <Suspense fallback={null}>
-      <SplatStage />
-    </Suspense>
-  );
-}
-
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <RouteTransitionProvider>
-        {/* Persistent 3D layer: every station's splat preloaded on the GPU, so a
-            station's scene is already live the instant the route doors open.
-            Mounted only in 3D mode — lite mode never touches WebGL. */}
-        <SplatStageGate />
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-      </RouteTransitionProvider>
-    </QueryClientProvider>
+    <RouteTransitionProvider>
+      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <Outlet />
+      <CustomCursor />
+    </RouteTransitionProvider>
   );
 }

@@ -1,0 +1,87 @@
+/* ==========================================================================
+   GLOBAL EFFECTS: theme cross-fade and the pulsing dot cursor. Imported by CustomCursor
+   ========================================================================== */
+
+/* Theme swap: 0.7s cross-fade of the whole page (see withThemeFade). */
+html[data-theme-fade]::view-transition-group(root) { animation-duration: 0.7s; }
+html[data-theme-fade]::view-transition-old(root) { animation: theme-fade-out 0.7s ease both; }
+html[data-theme-fade]::view-transition-new(root) { animation: theme-fade-in 0.7s ease both; }
+@keyframes theme-fade-out { to { opacity: 0; } }
+@keyframes theme-fade-in { from { opacity: 0; } }
+
+/* Pulsing dot cursor (fine pointers only; text fields keep the caret). */
+html[data-custom-cursor], html[data-custom-cursor] * { cursor: none !important; }
+html[data-custom-cursor] :is(input, textarea, select, [contenteditable="true"]) { cursor: text !important; }
+.custom-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 2147483647;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  will-change: transform;
+}
+.custom-cursor[data-hidden="true"] { opacity: 0; }
+.custom-cursor span,
+.custom-cursor span::after {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+}
+.custom-cursor span {
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  background: #fff;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.custom-cursor span::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border: 1px solid #fff;
+  animation: cursor-pulse 1.6s ease-out infinite;
+}
+.custom-cursor[data-hover="true"] span { transform: scale(1.9); }
+.custom-cursor[data-down="true"] span { transform: scale(0.7); }
+@keyframes cursor-pulse {
+  from { transform: scale(1); opacity: 0.9; }
+  to { transform: scale(3.2); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .custom-cursor span::after { animation: none; opacity: 0; } }
+
+/* Map-disintegration particles (RouteTransition). */
+.route-disintegrate-particles {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+/* Reading mode: no pure black or white. Soft ink on warm paper / bluish charcoal. */
+html body .reading[data-reading-theme="light"] {
+  --reading-bg: #ecebe6;
+  --reading-ink: #22242a;
+  --reading-muted: #22242aad;
+  --reading-line: #22242a26;
+}
+html body .reading[data-reading-theme="dark"] {
+  --reading-bg: #14161b;
+  --reading-ink: #e4e5e9;
+  --reading-muted: #e4e5e9a6;
+  --reading-line: rgba(228, 229, 233, 0.12);
+}
+html:has(.reading[data-reading-theme="light"]) { background: #ecebe6; }
+html:has(.reading[data-reading-theme="dark"]) { background: #14161b; }
+html body .reading .reading-skip:focus,
+html body .reading .reading-langs button.is-active { color: var(--reading-bg); background: var(--reading-ink); }
+
+/* Dark reading mode: dark all the way to the window edges, no light rules. */
+html:has(.reading[data-reading-theme="dark"]) body { background: #14161b; }
+html:has(.reading[data-reading-theme="light"]) body { background: #ecebe6; }
+html body .reading[data-reading-theme="dark"] :is(*, *::before, *::after) { border-color: var(--reading-line) !important; }
+html body .reading[data-reading-theme="dark"] .reading-header { border-bottom-color: var(--reading-line) !important; }

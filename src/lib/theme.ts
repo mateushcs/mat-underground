@@ -21,3 +21,28 @@ export function themeAttrs(theme: MapTheme) {
     ? { mapTheme: "light", aesthetic: "paper" }
     : { mapTheme: "dark", aesthetic: "prism" };
 }
+
+/**
+ * Run a synchronous theme swap as a 0.7s cross-fade (View Transitions API).
+ * Falls back to an instant swap when unsupported, for reduced motion, or while a
+ * route transition already owns the view transition.
+ */
+export function withThemeFade(apply: () => void) {
+  if (typeof document === "undefined") {
+    apply();
+    return;
+  }
+  const doc = document as Document & {
+    startViewTransition?: (cb: () => void) => { finished: Promise<void> };
+  };
+  const root = document.documentElement;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!doc.startViewTransition || reduced || root.dataset.routeTransitionRunning === "true") {
+    apply();
+    return;
+  }
+  root.dataset.themeFade = "true";
+  doc.startViewTransition(apply).finished.finally(() => {
+    delete root.dataset.themeFade;
+  });
+}

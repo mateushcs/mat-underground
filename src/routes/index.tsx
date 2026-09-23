@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { TransitMap } from "@/components/TransitMap";
 import { MapLoadingScreen } from "@/components/MapLoadingScreen";
-import { requestActiveStation } from "@/components/splatStageBus";
 import { getStoredLanguage, type ContentLang } from "@/lib/language";
 
 const READING_LABELS: Record<
@@ -66,10 +65,6 @@ function ReadingEntry() {
 }
 
 function Index() {
-  useEffect(() => {
-    requestActiveStation(null);
-  }, []);
-
   return (
     <>
       <ReadingEntry />

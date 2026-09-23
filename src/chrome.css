@@ -1,0 +1,278 @@
+/* ==========================================================================
+   MAP LAYER: mesh, glass-tube lines, hover card, controls. Imported by TransitMap
+   ========================================================================== */
+
+:root {
+  --holo: linear-gradient(100deg, #9fb8ff 0%, #c2b1ff 17%, #ffb3e4 33%, #ffe2ae 49%, #b3fff0 65%, #9ad6ff 82%, #c2b1ff 100%);
+  --holo-deep: linear-gradient(100deg, #4f63ff 0%, #8e4ff0 20%, #d9479b 38%, #c98522 55%, #1e9f8c 72%, #2f7fe0 88%, #8e4ff0 100%);
+  --holo-conic: conic-gradient(from 12deg, #130b26, #3b2a8f 8%, #2f7de0 16%, #a6ecff 22%, #f6dfb8 28%, #d56ac8 36%, #3b2a8f 46%, #0e0a1d 52%, #34288a 60%, #4fa8ff 68%, #c9f4ff 73%, #ffdcb3 79%, #b25ad8 87%, #130b26);
+}
+
+
+/* --------------------------------------------------------------------------
+   1. MESH GRADIENT BACKGROUND (map)
+   -------------------------------------------------------------------------- */
+.mesh-gradient {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+.map-dot-grid > .mesh-gradient { position: absolute; z-index: 0; }
+/* The shader replaces the CSS aurora and the blurred light field once it runs. */
+/* The blueprint mesh is the only background: legacy aurora + blurred light field
+   (a full-screen blur(34px), very costly) are always off. */
+html body .map-dot-grid > .map-aurora { display: none; }
+/* The old light field (violet/pink radial gradients) must never show over the
+   blueprint mesh, whatever the aesthetic rules in styles.css say. */
+html body [data-map-theme].map-dot-grid::before,
+html body .map-dot-grid::before { display: none !important; filter: none !important; }
+html body [data-map-theme="dark"].map-dot-grid { --map-bg: #07080b; background-color: #040406; }
+[data-map-theme="dark"].map-dot-grid::after { opacity: 0.18; }
+
+/* --------------------------------------------------------------------------
+   2. LINES AS GLASS TUBES
+   -------------------------------------------------------------------------- */
+.map-line-gloss path { stroke: #ffffff; stroke-opacity: 0.46; transition: opacity 0.3s ease; }
+[data-map-theme="light"] .map-line-gloss path { stroke-opacity: 0.62; }
+
+/* --------------------------------------------------------------------------
+   3. HOVER PREVIEW CARD: cover dissolving into black, square
+   -------------------------------------------------------------------------- */
+html [data-map-theme] .map-preview {
+  width: 300px;
+  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  background: #050507;
+  color: #f2f3f6;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+  animation: map-preview-rise 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+html [data-map-theme="light"] .map-preview { border-color: rgba(0, 0, 0, 0.5); box-shadow: 0 26px 60px rgba(10, 16, 30, 0.28); }
+/* Holographic top edge */
+html [data-map-theme] .map-preview::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 2;
+  height: 2px;
+  background: var(--holo);
+}
+html [data-map-theme] .map-preview-cover {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 16 / 10;
+  border-radius: 0;
+  background: #050507;
+}
+html [data-map-theme] .map-preview-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+html [data-map-theme] .map-preview-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(5, 5, 7, 0) 0%, rgba(5, 5, 7, 0.1) 35%, rgba(5, 5, 7, 0.78) 72%, #050507 100%);
+}
+html [data-map-theme] .map-preview-body {
+  position: relative;
+  z-index: 1;
+  margin-top: -58px;
+  padding: 0 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+html [data-map-theme] .map-preview-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(242, 243, 246, 0.8);
+}
+html [data-map-theme] .map-preview-tag i { width: 7px; height: 7px; background: var(--preview-accent); }
+html [data-map-theme] .map-preview-title { font-size: 21px; font-weight: 650; letter-spacing: -0.03em; line-height: 1.05; }
+html [data-map-theme] .map-preview-summary { margin: 0; font-size: 12.5px; line-height: 1.45; opacity: 0.72; }
+html [data-map-theme] .map-preview-meta { display: grid; grid-template-columns: 1fr; gap: 3px; margin: 4px 0 0; font-size: 10.5px; }
+html [data-map-theme] .map-preview-meta div { display: flex; align-items: baseline; gap: 10px; padding-top: 5px; border-top: 1px solid rgba(255, 255, 255, 0.09); }
+html [data-map-theme] .map-preview-meta dt { flex: none; font-size: 8.5px; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.5; }
+html [data-map-theme] .map-preview-meta dd { flex: 1; margin: 0; text-align: right; font-weight: 600; }
+html [data-map-theme] .map-preview-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: var(--holo);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+html [data-map-theme] .map-preview-hint span { font-size: 14px; letter-spacing: 0; }
+@keyframes map-preview-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Map title: subtitle in sentence case, not caps */
+.map-title .map-title-secondary {
+  margin-top: 6px;
+  font-family: var(--font-sans);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.72;
+}
+@media (max-width: 768px) { .map-title .map-title-secondary { font-size: 12px; } }
+
+/* --------------------------------------------------------------------------
+   8. HOVER CARD MOTION, THEME CROSS-FADE, CURSOR, CONTROL BARS
+   -------------------------------------------------------------------------- */
+/* Enter: fade + rise + unblur. Exit: its own animation (a fill-mode "both" entry
+   would otherwise pin opacity at 1 and the card would vanish in one frame).
+   Menu cards glide between rows instead of jumping. */
+html [data-map-theme] .map-preview {
+  animation: map-preview-enter 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: left 320ms cubic-bezier(0.16, 1, 0.3, 1), top 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+html [data-map-theme] .map-preview[data-follow] { transition: none; }
+html [data-map-theme] .map-preview[data-leaving] { animation: map-preview-exit 200ms ease forwards; }
+html [data-map-theme] .map-preview-hint { display: none; }
+@keyframes map-preview-enter {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+@keyframes map-preview-exit {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(6px) scale(0.98); }
+}
+@media (prefers-reduced-motion: reduce) { html [data-map-theme] .map-preview { animation: none; transition: none; } }
+
+/* Map controls: one joined toolbar instead of three scattered buttons. */
+html body .map-legend .map-menu-controls { justify-content: flex-start !important; gap: 0 !important; width: max-content; }
+html body .map-legend .map-menu-controls > * { height: 32px !important; margin: 0 !important; }
+html body .map-legend .map-menu-controls .map-theme-toggle,
+html body .map-legend .map-menu-controls .map-reading-btn { width: 34px !important; margin-left: -1px !important; display: inline-flex; align-items: center; justify-content: center; }
+html body .map-legend .map-menu-controls .map-language-tabs button { height: 100%; min-width: 36px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; }
+
+/* Sci-fi metro: glowing data packets and train headlights. */
+/* No CSS filters on moving elements: they re-run every frame. Halos are drawn in SVG. */
+html body .map-train { filter: none; }
+@media (prefers-reduced-motion: reduce) { .map-packet { display: none; } }
+
+/* --------------------------------------------------------------------------
+   HOME CD: small disc in the corner, slowly turning; drag to spin
+   -------------------------------------------------------------------------- */
+.home-cd {
+  position: absolute;
+  right: 28px;
+  bottom: 28px;
+  z-index: 7;
+  width: 92px;
+  height: 92px;
+}
+.home-cd-disc,
+.home-cd-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+.home-cd-disc {
+  cursor: grab;
+  touch-action: none;
+  transform: rotate(var(--cd-drag, 0deg));
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25), 0 14px 34px rgba(0, 0, 0, 0.5);
+  -webkit-mask: radial-gradient(circle, transparent 0 7%, #000 7.4%);
+  mask: radial-gradient(circle, transparent 0 7%, #000 7.4%);
+}
+.home-cd.is-dragging .home-cd-disc { cursor: grabbing; }
+.home-cd-foil {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 7.4%, rgba(255, 255, 255, 0.22) 7.4% 8.2%, rgba(8, 9, 14, 0.62) 8.2% 16%, rgba(255, 255, 255, 0.35) 16% 16.8%, transparent 17%),
+    repeating-radial-gradient(circle, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
+    var(--holo-conic);
+  animation: home-cd-turn 24s linear infinite;
+}
+.home-cd.is-dragging .home-cd-foil { animation-play-state: paused; }
+@keyframes home-cd-turn { to { rotate: 360deg; } }
+.home-cd-glare {
+  pointer-events: none;
+  background: conic-gradient(from 210deg, transparent 0 8%, rgba(255, 255, 255, 0.4) 12%, transparent 19% 58%, rgba(255, 255, 255, 0.2) 63%, transparent 70%);
+  mix-blend-mode: screen;
+}
+.home-cd-hint {
+  position: absolute;
+  right: 72px;
+  bottom: 84px;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: home-cd-hint-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both, home-cd-hint-bob 1.4s ease-in-out 420ms infinite;
+}
+.home-cd-hint span {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  background: linear-gradient(100deg, #9fb8ff, #c2b1ff, #ffb3e4, #ffe2ae, #b3fff0, #9ad6ff, #9fb8ff);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: home-cd-holo 4s linear infinite;
+}
+.home-cd-hint svg { width: 22px; height: 22px; color: #c2b1ff; margin-bottom: -10px; }
+@keyframes home-cd-hint-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes home-cd-hint-bob { 50% { transform: translate(3px, 3px); } }
+@keyframes home-cd-holo { to { background-position: 300% 0; } }
+/* Phones: the project menu fills the bottom, so the CD moves to the top-right. */
+@media (max-width: 768px) { .home-cd { width: 56px; height: 56px; right: 14px; top: 16px; bottom: auto; } .home-cd-hint { right: 8px; top: 64px; bottom: auto; flex-direction: row-reverse; } .home-cd-hint svg { transform: scaleX(-1) rotate(-90deg); margin: 0; } }
+@media (prefers-reduced-motion: reduce) { .home-cd-foil, .home-cd-hint, .home-cd-hint span { animation: none; } }
+
+/* Party mode on the map: title letters and menu rows dance too. */
+html[data-party="on"] .map-legend .map-line-card { animation: party-bop calc(var(--party-beat-s, 0.484s) * 2) ease-in-out infinite; }
+html[data-party="on"] .map-legend li:nth-child(even) .map-line-card { animation-direction: reverse; }
+html[data-party="on"] .map-title-secondary { animation: party-sway calc(var(--party-beat-s, 0.484s) * 2) ease-in-out infinite; }
+html[data-party="on"] .home-cd-foil { animation-duration: 0.8s; }
+
+/* Stronger neon: brighter, wider halos and a brighter glass core. */
+html body .map-radiance-outer { stroke-width: 28; stroke-opacity: 0.13; }
+html body .map-radiance-mid { stroke-width: 14; stroke-opacity: 0.3; }
+html body .map-radiance-inner { stroke-width: 7; stroke-opacity: 0.5; }
+html body [data-map-theme="light"] .map-radiance-outer { stroke-opacity: 0.1; }
+html body [data-map-theme="light"] .map-radiance-inner { stroke-opacity: 0.35; }
+.map-line-gloss path { stroke-opacity: 0.72; }
+
+/* --------------------------------------------------------------------------
+   LOW-POWER TIER (html[data-perf="lite"], set before first paint)
+   Drops the layers that cost the most per frame on weak GPUs/CPUs.
+   -------------------------------------------------------------------------- */
+html[data-perf="lite"] .map-packet { display: none; }
+html[data-perf="lite"] .map-dot-grid::after,
+html[data-perf="lite"] .map-film::before,
+html[data-perf="lite"] .map-film::after { display: none !important; }
+html[data-perf="lite"] .map-radiance-outer { display: none; }
+html[data-perf="lite"] :is(.map-packet, .map-train-light, .map-train) { filter: none !important; }
+html[data-perf="lite"] .home-cd-foil { animation-duration: 48s; }
+
+/* Full-screen overlays: no blend modes. Blending forces the whole viewport to be
+   recomposited every frame while the lines animate underneath. */
+html body [data-map-theme].map-dot-grid::after { mix-blend-mode: normal; }
+html body .map-film::before { mix-blend-mode: normal; opacity: 0.03; }
+html body .map-film::after { display: none; }

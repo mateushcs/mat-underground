@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { flushSync } from "react-dom";
+import "@/map-menu.css";
 import {
   stations as allStations,
   lines as allLines,
@@ -11,11 +12,12 @@ import {
 } from "@/data/transit";
 import {
   isContactLine,
-  splatUrlForLine,
   stationSlugForLine,
   stationSlugForLines,
 } from "@/data/portfolioStations";
 import { portfolioContent } from "@/data/portfolioContent";
+import { getStationContent } from "@/data/caseEditorial";
+import { posterUrlFor } from "@/lib/posters";
 import {
   getStoredLanguage,
   htmlLang,
@@ -23,15 +25,20 @@ import {
   setStoredLanguage,
   type ContentLang,
 } from "@/lib/language";
-import { getStoredTheme, setStoredTheme, themeAttrs, type MapTheme } from "@/lib/theme";
-import { BookOpen, Boxes, Moon, Sun } from "lucide-react";
-import { warmSplat } from "@/lib/prefetchSplats";
-import { setViewMode, useViewMode } from "@/lib/viewMode";
+import { getStoredTheme, setStoredTheme, themeAttrs, withThemeFade, type MapTheme } from "@/lib/theme";
+import { BookOpen, Moon, Sun } from "lucide-react";
 import { layoutLabels, secondaryLabelAngles, type Box, type LabelItem } from "@/lib/labelLayout";
 import { useRouteTransition, type DissolveOrigin } from "@/components/RouteTransition";
-import { MapAtmosphere } from "@/components/MapAtmosphere";
 import { ContactModal } from "@/components/ContactModal";
 import { MovingTrains } from "@/components/MovingTrains";
+import { CityBlueprint, type CityBlueprintHandle } from "@/components/CityBlueprint";
+import { MeshGradient } from "@/components/MeshGradient";
+import { isLitePerf } from "@/lib/perf";
+import { HomeDisc } from "@/components/HomeDisc";
+import { PartyMode } from "@/components/PartyMode";
+
+import "@/map-atmosphere.css";
+import "@/chrome.css";
 
 // Schematic board the geometry is authored in (centered map space).
 const VIEWBOX = { x: -810, y: -455, w: 1615, h: 1055 };
@@ -169,6 +176,13 @@ const ACTIVE_LINE_IDS = ["L1", "L2", "L9", "L3", "L4", "L5", "L7", "L8"] as cons
 const COLORED_LINE_IDS = new Set(["L1", "L2", "L3", "L4", "L5", "L7", "L8", "L9"]);
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 6;
+// Camera easing rates (1/s): higher follows input more tightly.
+const CAMERA_RESPONSE_PAN = 32;
+const CAMERA_RESPONSE_PINCH = 36;
+const CAMERA_RESPONSE_ZOOM = 11;
+// Wheel zoom sensitivity per wheel-delta pixel (mouse) and per trackpad pinch delta.
+const WHEEL_ZOOM_SPEED = 0.0024;
+const PINCH_WHEEL_ZOOM_SPEED = 0.012;
 const DESKTOP_INITIAL_VIEW: ViewState = { x: 0, y: 0, k: 2.35 };
 const MOBILE_INITIAL_VIEW: ViewState = { x: 0, y: 0, k: 3.55 };
 const MAP_VIEW_STORAGE_KEY = "mats-map-view";
@@ -186,6 +200,145 @@ for (const [lineId, byLang] of Object.entries(portfolioContent)) {
   for (const lang of ["pt", "en"] as const) {
     lineCopy[lang][lineId] = byLang[lang].title;
   }
+}
+
+const LINE_SUBTITLES: Record<string, Record<Language, string>> = {
+  L1: { pt: "Euzinho", en: "Euzinho" },
+  L2: { pt: "Tracbel", en: "Tracbel" },
+  L9: { pt: "Tour House", en: "Tour House" },
+  L3: { pt: "Neo Ventures", en: "Neo Ventures" },
+  L4: { pt: "TIM AWC", en: "TIM AWC" },
+  L8: { pt: "Fale comigo", en: "Get in touch" },
+};
+
+/** Lines that show a waveform glyph instead of a text subtitle (e.g. Músicas). */
+const WAVEFORM_SUBTITLE_LINE_IDS = new Set(["L5"]);
+
+/** Small audio-waveform glyph used as the subtitle for the music line. */
+function MenuWaveform() {
+  const bars = [4, 8, 12, 6, 14, 9, 5, 13, 7, 11, 4, 8];
+  return (
+    <svg className="map-waveform" viewBox="0 0 40 16" fill="currentColor" aria-hidden="true">
+      {bars.map((h, i) => (
+        <rect key={i} x={i * 3.4} y={(16 - h) / 2} width={2} height={h} />
+      ))}
+    </svg>
+  );
+}
+
+/** Hover preview card state/anchoring for the menu rows and the map stations. */
+export type PreviewRect = { left: number; top: number; right: number; bottom: number };
+export type PreviewState = { lineId: string; rect: PreviewRect; follow?: boolean };
+
+const PREVIEW_LABELS: Record<ContentLang, { client: string; company: string; role: string }> = {
+  pt: { client: "Cliente", company: "Empresa", role: "Função" },
+  en: { client: "Client", company: "Company", role: "Role" },
+};
+
+/** One- or two-line summary + cover + client/company for a line's preview card. */
+function getLinePreview(lineId: string, lang: ContentLang) {
+  const content = getStationContent(lineId, lang);
+  if (!content) return null;
+  const slug = stationSlugForLine(lineId);
+  return {
+    title: content.title,
+    summary: content.summary ?? content.role,
+    cover: content.cover?.src ?? (slug ? posterUrlFor(slug) : undefined),
+    company: content.header?.company,
+    client: content.header?.client,
+    role: content.role,
+  };
+}
+
+const PREVIEW_WIDTH = 300;
+const PREVIEW_EST_HEIGHT = 280;
+
+/** Place the card beside a rect (menu row, station) or a 1px rect at the cursor. */
+function placePreview(rect: PreviewRect, height = PREVIEW_EST_HEIGHT, gap = 16) {
+  const vw = typeof window !== "undefined" ? window.innerWidth : 1280;
+  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
+  let left = rect.right + gap;
+  if (left + PREVIEW_WIDTH > vw - 12) left = rect.left - PREVIEW_WIDTH - gap;
+  left = Math.max(12, Math.min(left, vw - PREVIEW_WIDTH - 12));
+  let top = rect.top + (rect.bottom - rect.top) / 2 - height / 2;
+  top = Math.max(12, Math.min(top, vh - height - 12));
+  return { left, top };
+}
+
+function MapPreviewCard({
+  preview,
+  lang,
+  leaving,
+  cardRef,
+  onPointerEnter,
+  onPointerLeave,
+  onOpen,
+}: {
+  preview: PreviewState;
+  lang: ContentLang;
+  leaving: boolean;
+  cardRef: React.RefObject<HTMLDivElement | null>;
+  onPointerEnter: () => void;
+  onPointerLeave: () => void;
+  onOpen: (lineId: string, x: number, y: number) => void;
+}) {
+  const data = getLinePreview(preview.lineId, lang);
+  if (!data) return null;
+  const line = allLines.find((l) => l.id === preview.lineId);
+  const { left, top } = placePreview(preview.rect, PREVIEW_EST_HEIGHT, preview.follow ? 22 : 16);
+  const labels = PREVIEW_LABELS[lang];
+  const accent = line ? `var(--${lineVisualColor(line)})` : "#fff";
+  const number = line ? lineNumber(line.shortName) : "";
+  // Cursor-following cards must not catch the pointer (they would steal the
+  // line hover); menu cards can be hovered and clicked.
+  const interactive = !preview.follow;
+  return (
+    <div
+      ref={cardRef}
+      className="map-preview"
+      data-leaving={leaving ? "true" : undefined}
+      data-follow={preview.follow ? "true" : undefined}
+      style={{ left, top, "--preview-accent": accent, pointerEvents: interactive ? "auto" : "none", cursor: interactive ? "pointer" : undefined } as CSSProperties}
+      aria-hidden="true"
+      onPointerEnter={interactive ? onPointerEnter : undefined}
+      onPointerLeave={interactive ? onPointerLeave : undefined}
+      onClick={interactive ? (event) => onOpen(preview.lineId, event.clientX, event.clientY) : undefined}
+    >
+      {data.cover && (
+        <div className="map-preview-cover">
+          <img src={data.cover} alt="" loading="lazy" />
+        </div>
+      )}
+      <div className="map-preview-body">
+        <span className="map-preview-tag">
+          <i />
+          {lang === "en" ? "Line" : "Linha"} {number}
+        </span>
+        <strong className="map-preview-title">{data.title}</strong>
+        <p className="map-preview-summary">{data.summary}</p>
+        <dl className="map-preview-meta">
+          {data.client && (
+            <div>
+              <dt>{labels.client}</dt>
+              <dd>{data.client}</dd>
+            </div>
+          )}
+          {data.company && (
+            <div>
+              <dt>{labels.company}</dt>
+              <dd>{data.company}</dd>
+            </div>
+          )}
+          {!data.company && !data.client && data.role && (
+            <div>
+              <dt>{labels.role}</dt>
+              <dd>{data.role}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
+    </div>
+  );
 }
 
 function pointToSegmentDistance(
@@ -418,25 +571,165 @@ export function TransitMap() {
   const router = useRouter();
   const svgRef = useRef<SVGSVGElement>(null);
   const mapContentRef = useRef<SVGGElement>(null);
-  const [view, setView] = useState<ViewState>(() => getRememberedMapView());
+  const flowContentRef = useRef<SVGGElement>(null);
+  const baseContentRef = useRef<SVGGElement>(null);
+  const blueprintRef = useRef<CityBlueprintHandle>(null);
+  const [view] = useState<ViewState>(() => getRememberedMapView());
+  // Smooth camera: input writes `targetRef`; a rAF loop eases `viewRef` (what is on
+  // screen) towards it. Zoom eases in log-space around a fixed anchor so the point
+  // under the cursor / pinch centre stays put for the whole animation.
   const viewRef = useRef(view);
+  const targetRef = useRef(view);
+  const zoomAnchor = useRef<{ ux: number; uy: number; wx: number; wy: number } | null>(null);
+  const cameraResponse = useRef(CAMERA_RESPONSE_PAN);
+  const cameraFrame = useRef<number | null>(null);
+  const cameraLastT = useRef(0);
+  const saveViewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const applyView = useCallback((next: ViewState) => {
+    // Pan/zoom changes a single SVG transform, not every station and label.
+    const transform = `translate(${next.x * next.k} ${next.y * next.k}) scale(${next.k})`;
+    mapContentRef.current?.setAttribute("transform", transform);
+    flowContentRef.current?.setAttribute("transform", transform);
+    baseContentRef.current?.setAttribute("transform", transform);
+    blueprintRef.current?.draw(next);
+    if (saveViewTimer.current !== null) clearTimeout(saveViewTimer.current);
+    saveViewTimer.current = setTimeout(() => rememberMapView(targetRef.current), 250);
+  }, []);
+
+  const stepCamera = useCallback(
+    (t: number) => {
+      const dt = Math.min(0.064, Math.max(0, (t - cameraLastT.current) / 1000));
+      cameraLastT.current = t;
+      const cur = viewRef.current;
+      const tgt = targetRef.current;
+      const alpha = 1 - Math.exp(-dt * cameraResponse.current);
+
+      const k = Math.exp(Math.log(cur.k) + (Math.log(tgt.k) - Math.log(cur.k)) * alpha);
+      const anchor = zoomAnchor.current;
+      const next = anchor
+        ? clampViewToMap({ k, x: anchor.ux / k - anchor.wx, y: anchor.uy / k - anchor.wy })
+        : { k, x: cur.x + (tgt.x - cur.x) * alpha, y: cur.y + (tgt.y - cur.y) * alpha };
+
+      const settled =
+        Math.abs(Math.log(tgt.k / next.k)) < 1e-4 &&
+        Math.abs(tgt.x - next.x) * next.k < 0.02 &&
+        Math.abs(tgt.y - next.y) * next.k < 0.02;
+
+      viewRef.current = settled ? tgt : next;
+      applyView(viewRef.current);
+
+      if (settled) {
+        cameraFrame.current = null;
+        zoomAnchor.current = null;
+      } else {
+        cameraFrame.current = requestAnimationFrame(stepCamera);
+      }
+    },
+    [applyView],
+  );
+
+  const setView = useCallback(
+    (
+      update: (previous: ViewState) => ViewState,
+      response = CAMERA_RESPONSE_PAN,
+      anchor: { ux: number; uy: number; wx: number; wy: number } | null = null,
+    ) => {
+      targetRef.current = update(targetRef.current);
+      cameraResponse.current = response;
+      zoomAnchor.current = anchor;
+      if (cameraFrame.current !== null) return;
+      cameraLastT.current = performance.now();
+      cameraFrame.current = requestAnimationFrame(stepCamera);
+    },
+    [stepCamera],
+  );
+  // SSR renders the default view; the client may restore a different one from
+  // sessionStorage, and React does not patch mismatched attributes on hydration.
+  useLayoutEffect(() => {
+    applyView(viewRef.current);
+    // Low-power devices: freeze the flowing line gradients (they repaint every line each frame).
+    if (isLitePerf()) {
+      flowContentRef.current?.ownerSVGElement
+        ?.querySelectorAll("linearGradient animateTransform")
+        .forEach((node) => node.remove());
+    }
+  }, [applyView]);
   useEffect(() => {
-    viewRef.current = view;
-    rememberMapView(view);
-  }, [view]);
+    return () => {
+      if (cameraFrame.current !== null) cancelAnimationFrame(cameraFrame.current);
+      if (saveViewTimer.current !== null) clearTimeout(saveViewTimer.current);
+      rememberMapView(targetRef.current);
+    };
+  }, []);
   // Which line is currently focused via the menu legend (hover). When set, every
   // other line / station / label on the map dims to FOCUS_DIM.
   const [hoveredLineId, setHoveredLineId] = useState<string | null>(null);
+  const [preview, setPreviewState] = useState<PreviewState | null>(null);
+  const [previewLeaving, setPreviewLeaving] = useState(false);
+  const previewCardRef = useRef<HTMLDivElement>(null);
+  const previewHideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previewUnmountTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearPreviewTimers = useCallback(() => {
+    if (previewHideTimer.current !== null) clearTimeout(previewHideTimer.current);
+    if (previewUnmountTimer.current !== null) clearTimeout(previewUnmountTimer.current);
+    previewHideTimer.current = null;
+    previewUnmountTimer.current = null;
+  }, []);
+  const showPreview = useCallback(
+    (next: PreviewState) => {
+      // The contact line opens the form directly; it has no preview card.
+      if (isContactLine(next.lineId)) return;
+      clearPreviewTimers();
+      setPreviewLeaving(false);
+      setPreviewState(next);
+    },
+    [clearPreviewTimers],
+  );
+  /** Fade the card out (after `delay`, so the pointer can travel onto it). */
+  const hidePreview = useCallback((delay = 0) => {
+    if (previewHideTimer.current !== null) clearTimeout(previewHideTimer.current);
+    previewHideTimer.current = setTimeout(() => {
+      previewHideTimer.current = null;
+      setPreviewLeaving(true);
+      previewUnmountTimer.current = setTimeout(() => {
+        previewUnmountTimer.current = null;
+        setPreviewState(null);
+        setPreviewLeaving(false);
+      }, 200);
+    }, delay);
+  }, []);
+  const keepPreview = useCallback(() => {
+    clearPreviewTimers();
+    setPreviewLeaving(false);
+  }, [clearPreviewTimers]);
+  const setPreview = useCallback(
+    (next: PreviewState | null) => (next ? showPreview(next) : hidePreview(0)),
+    [showPreview, hidePreview],
+  );
+  /** Move a cursor-following card without re-rendering the map. */
+  const movePreview = useCallback((x: number, y: number) => {
+    const el = previewCardRef.current;
+    if (!el) return;
+    const pos = placePreview({ left: x, right: x, top: y, bottom: y }, el.offsetHeight || PREVIEW_EST_HEIGHT, 22);
+    el.style.left = `${pos.left}px`;
+    el.style.top = `${pos.top}px`;
+  }, []);
+  useEffect(() => clearPreviewTimers, [clearPreviewTimers]);
   const [contactOpen, setContactOpen] = useState(false);
   // Render light on the server, then adopt the visitor's stored choice/system preference on mount.
   const [theme, setTheme] = useState<MapTheme>("light");
   useEffect(() => setTheme(getStoredTheme()), []);
   const toggleTheme = useCallback(() => {
-    setTheme((prev) => {
-      const next: MapTheme = prev === "dark" ? "light" : "dark";
-      setStoredTheme(next);
-      return next;
-    });
+    withThemeFade(() =>
+      flushSync(() =>
+        setTheme((prev) => {
+          const next: MapTheme = prev === "dark" ? "light" : "dark";
+          setStoredTheme(next);
+          return next;
+        }),
+      ),
+    );
   }, []);
   // Deep-link: /?contact=1 abre o formulário de contato direto.
   useEffect(() => {
@@ -446,14 +739,33 @@ export function TransitMap() {
     (ids: string[]) => hoveredLineId !== null && !ids.includes(hoveredLineId),
     [hoveredLineId],
   );
-
-  const [language, setLanguage] = useState<Language>(() => getStoredLanguage());
+  // Server renders PT; the stored choice is applied after hydration (reading it
+  // during the first render made SSR and client markup disagree).
+  const [language, setLanguage] = useState<Language>("pt");
+  useEffect(() => setLanguage(getStoredLanguage()), []);
+  const skipFirstLanguageSave = useRef(true);
   useEffect(() => {
+    if (skipFirstLanguageSave.current) {
+      skipFirstLanguageSave.current = false;
+      return;
+    }
     setStoredLanguage(language);
     document.documentElement.lang = htmlLang(language);
   }, [language]);
-
-  const viewMode = useViewMode();
+  const showLinePreview = useCallback(
+    (lineId: string, el: Element | null) => {
+      if (!el || !getStationContent(lineId, language)) {
+        setPreview(null);
+        return;
+      }
+      const r = el.getBoundingClientRect();
+      setPreview({
+        lineId,
+        rect: { left: r.left, top: r.top, right: r.right, bottom: r.bottom },
+      });
+    },
+    [language, setPreview],
+  );
 
   const { go } = useRouteTransition();
   const warmStationRoute = useCallback(
@@ -479,7 +791,7 @@ export function TransitMap() {
   const startStationTransition = useCallback(
     (slug: string | null, dissolveFrom?: DissolveOrigin) => {
       if (!slug) return;
-      rememberMapView(viewRef.current);
+      rememberMapView(targetRef.current);
       flushSync(() => setHoveredLineId(null));
       go({ to: "/station/$stationId", params: { stationId: slug }, dissolveFrom });
     },
@@ -795,39 +1107,111 @@ export function TransitMap() {
     return layoutLabels(items, markerBoxes, routeObstacles);
   }, [stationKinds, linesByStation, routeObstacles, lineById, language, terminalPlacements]);
 
-  // --- Silent pan / zoom (pointer + pinch) ---
+  // --- Smooth Pan / Zoom with Inertia (Momentum Physics) ---
   const isPanning = useRef(false);
   const moved = useRef(false);
+  // Pan origin in client px plus the target view at pointer-down.
   const panStart = useRef({ x: 0, y: 0, vx: 0, vy: 0 });
   const activePointers = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const pinchLastDist = useRef<number | null>(null);
+  const pinchLast = useRef<{ dist: number; ux: number; uy: number } | null>(null);
+  // SVG user units per client pixel (viewBox "meet" scale), refreshed on pointer-down.
+  const userPerPx = useRef(1);
+
+  // Velocity tracking & inertia momentum
+  const pointerVelocity = useRef({ vx: 0, vy: 0, lastX: 0, lastY: 0, lastT: 0 });
+  const inertiaAnimId = useRef<number | null>(null);
+
+  const stopInertia = useCallback(() => {
+    if (inertiaAnimId.current !== null) {
+      cancelAnimationFrame(inertiaAnimId.current);
+      inertiaAnimId.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => stopInertia();
+  }, [stopInertia]);
+
+  // Client px -> SVG user space (viewBox coords, before the content transform).
+  const clientToUser = useCallback((clientX: number, clientY: number) => {
+    const ctm = svgRef.current?.getScreenCTM();
+    if (!ctm) return null;
+    const inv = ctm.inverse();
+    return {
+      x: inv.a * clientX + inv.c * clientY + inv.e,
+      y: inv.b * clientX + inv.d * clientY + inv.f,
+    };
+  }, []);
+
+  const refreshUserPerPx = () => {
+    const ctm = svgRef.current?.getScreenCTM();
+    if (ctm && ctm.a > 0) userPerPx.current = 1 / ctm.a;
+  };
+
+  const beginPan = (clientX: number, clientY: number) => {
+    isPanning.current = true;
+    panStart.current = {
+      x: clientX,
+      y: clientY,
+      vx: targetRef.current.x,
+      vy: targetRef.current.y,
+    };
+    pointerVelocity.current = {
+      vx: 0,
+      vy: 0,
+      lastX: clientX,
+      lastY: clientY,
+      lastT: performance.now(),
+    };
+  };
+
+  const beginPinch = () => {
+    const pts = [...activePointers.current.values()];
+    const mid = clientToUser((pts[0].x + pts[1].x) / 2, (pts[0].y + pts[1].y) / 2);
+    const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    pinchLast.current = mid && dist > 0 ? { dist, ux: mid.x, uy: mid.y } : null;
+  };
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId);
+    stopInertia();
+    refreshUserPerPx();
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Pointer already released (or synthetic); panning still works without capture.
+    }
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (activePointers.current.size === 1) {
-      isPanning.current = true;
       moved.current = false;
-      panStart.current = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y };
-      pinchLastDist.current = null;
+      pinchLast.current = null;
+      beginPan(e.clientX, e.clientY);
     } else if (activePointers.current.size === 2) {
       isPanning.current = false;
-      const pts = [...activePointers.current.values()];
-      pinchLastDist.current = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      beginPinch();
     }
   };
+
   const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!activePointers.current.has(e.pointerId)) return;
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (activePointers.current.size === 2) {
+      const last = pinchLast.current;
       const pts = [...activePointers.current.values()];
+      const mid = clientToUser((pts[0].x + pts[1].x) / 2, (pts[0].y + pts[1].y) / 2);
       const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-      if (pinchLastDist.current !== null && dist > 0) {
-        const ratio = dist / pinchLastDist.current;
-        setView((v) => clampViewToMap({ ...v, k: v.k * ratio }));
+      if (last && mid && dist > 0) {
+        moved.current = true;
+        // Zoom around the previous pinch centre, then follow the centre as it moves.
+        setView((v) => {
+          const wx = last.ux / v.k - v.x;
+          const wy = last.uy / v.k - v.y;
+          const k = clamp(v.k * (dist / last.dist), MIN_ZOOM, MAX_ZOOM);
+          return clampViewToMap({ k, x: mid.x / k - wx, y: mid.y / k - wy });
+        }, CAMERA_RESPONSE_PINCH);
       }
-      pinchLastDist.current = dist;
+      pinchLast.current = mid && dist > 0 ? { dist, ux: mid.x, uy: mid.y } : null;
       return;
     }
 
@@ -835,42 +1219,129 @@ export function TransitMap() {
     const dx = e.clientX - panStart.current.x;
     const dy = e.clientY - panStart.current.y;
     if (!moved.current && Math.hypot(dx, dy) > 4) moved.current = true;
+
+    // Track smoothed instantaneous velocity (client px / ms)
+    const now = performance.now();
+    const dt = now - pointerVelocity.current.lastT;
+    if (dt > 8) {
+      const instVx = (e.clientX - pointerVelocity.current.lastX) / dt;
+      const instVy = (e.clientY - pointerVelocity.current.lastY) / dt;
+      pointerVelocity.current.vx = pointerVelocity.current.vx * 0.35 + instVx * 0.65;
+      pointerVelocity.current.vy = pointerVelocity.current.vy * 0.35 + instVy * 0.65;
+      pointerVelocity.current.lastX = e.clientX;
+      pointerVelocity.current.lastY = e.clientY;
+      pointerVelocity.current.lastT = now;
+    }
+
+    const upp = userPerPx.current;
     setView((v) =>
       clampViewToMap({
         ...v,
-        x: panStart.current.vx + dx / v.k,
-        y: panStart.current.vy + dy / v.k,
+        x: panStart.current.vx + (dx * upp) / v.k,
+        y: panStart.current.vy + (dy * upp) / v.k,
       }),
     );
   };
+
   const onPointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
     activePointers.current.delete(e.pointerId);
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
     if (activePointers.current.size < 2) {
-      pinchLastDist.current = null;
+      pinchLast.current = null;
     }
     if (activePointers.current.size === 0) {
+      const wasPanning = isPanning.current;
       isPanning.current = false;
+
+      // Trigger momentum fling if released with speed
+      const now = performance.now();
+      const timeSinceLastMove = now - pointerVelocity.current.lastT;
+      if (wasPanning && moved.current && timeSinceLastMove < 75) {
+        // Client px per 60 Hz frame; converted to user units when applied.
+        let vx = pointerVelocity.current.vx * 16;
+        let vy = pointerVelocity.current.vy * 16;
+        const initialSpeed = Math.hypot(vx, vy);
+
+        if (initialSpeed > 1.2) {
+          const maxSpeed = 38;
+          if (initialSpeed > maxSpeed) {
+            const factor = maxSpeed / initialSpeed;
+            vx *= factor;
+            vy *= factor;
+          }
+
+          // Frame-rate independent decay: 0.935 per 60 Hz frame.
+          const frameMs = 1000 / 60;
+          const upp = userPerPx.current;
+          let lastT = performance.now();
+          const stepInertia = (t: number) => {
+            const frames = Math.min(64, Math.max(0, t - lastT)) / frameMs;
+            lastT = t;
+            const decay = Math.pow(0.935, frames);
+            vx *= decay;
+            vy *= decay;
+
+            if (Math.hypot(vx, vy) < 0.15) {
+              inertiaAnimId.current = null;
+              return;
+            }
+
+            setView((v) => {
+              const next = clampViewToMap({
+                ...v,
+                x: v.x + (vx * frames * upp) / v.k,
+                y: v.y + (vy * frames * upp) / v.k,
+              });
+              if (next.x === v.x) vx *= 0.5;
+              if (next.y === v.y) vy *= 0.5;
+              return next;
+            });
+
+            inertiaAnimId.current = requestAnimationFrame(stepInertia);
+          };
+
+          inertiaAnimId.current = requestAnimationFrame(stepInertia);
+        }
+      }
     } else if (activePointers.current.size === 1) {
       // One finger remains after pinch — resume pan from current position
       const [remaining] = activePointers.current.values();
-      setView((v) => {
-        panStart.current = { x: remaining.x, y: remaining.y, vx: v.x, vy: v.y };
-        isPanning.current = true;
-        return v;
-      });
+      beginPan(remaining.x, remaining.y);
     }
   };
 
-  const onWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault();
-    setView((v) => {
-      const k = v.k * Math.exp(-e.deltaY * 0.0015);
-      return clampViewToMap({ ...v, k });
-    });
-  }, []);
+  const onWheel = useCallback(
+    (e: WheelEvent) => {
+      e.preventDefault();
+      stopInertia();
+      const u = clientToUser(e.clientX, e.clientY);
+      if (!u) return;
+
+      let delta = e.deltaY;
+      if (e.deltaMode === 1) delta *= 16;
+      else if (e.deltaMode === 2) delta *= window.innerHeight;
+      // Trackpad pinch arrives as ctrl+wheel with small deltas.
+      const speed = e.ctrlKey ? PINCH_WHEEL_ZOOM_SPEED : WHEEL_ZOOM_SPEED;
+      const factor = Math.exp(-clamp(delta, -300, 300) * speed);
+
+      // Anchor on the map point currently under the cursor (what is on screen now),
+      // so the zoom animation converges on it even while a previous zoom is easing.
+      const cur = viewRef.current;
+      const wx = u.x / cur.k - cur.x;
+      const wy = u.y / cur.k - cur.y;
+      setView(
+        (v) => {
+          const k = clamp(v.k * factor, MIN_ZOOM, MAX_ZOOM);
+          return clampViewToMap({ k, x: u.x / k - wx, y: u.y / k - wy });
+        },
+        e.ctrlKey ? CAMERA_RESPONSE_PINCH : CAMERA_RESPONSE_ZOOM,
+        { ux: u.x, uy: u.y, wx, wy },
+      );
+    },
+    [clientToUser, setView, stopInertia],
+  );
   useEffect(() => {
     const el = svgRef.current;
     if (!el) return;
@@ -888,24 +1359,97 @@ export function TransitMap() {
 
   return (
     <div
+      role="main"
+      aria-label={language === "en" ? "Metro network portfolio" : "Malha metroviária, portfólio"}
       data-map-theme={themeAttrs(theme).mapTheme}
       data-map-aesthetic={themeAttrs(theme).aesthetic}
       data-transition-surface="map"
       className="map-dot-grid relative h-screen w-screen overflow-hidden font-sans"
       suppressHydrationWarning
     >
-      <MapAtmosphere />
+      <a className="sr-only" href="#projects">
+        {language === "en" ? "Skip to the project list" : "Ir para a lista de projetos"}
+      </a>
 
+      <MeshGradient theme={themeAttrs(theme).mapTheme} />
+      <div className="map-aurora" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
+      </div>
+
+      <header
+        className="map-title"
+        aria-label={language === "en" ? "Page title" : "Título da página"}
+      >
+        <h1 className="map-title-primary">
+          {language === "en" ? "Mateus' portfolio 𖹭" : "Portfólio do Mateus 𖹭"}
+        </h1>
+        <p className="map-title-secondary">
+          {language === "en" ? "Multidisciplinary product designer" : "Product designer multidisciplinar"}
+        </p>
+      </header>
+
+      <p className="sr-only">
+        {language === "en"
+          ? "Interactive metro-map of my portfolio. Each line is a project; use the project list below to open one."
+          : "Mapa interativo do meu portfólio em forma de malha metroviária. Cada linha é um projeto; use a lista de projetos abaixo para abrir um."}
+      </p>
+
+
+      <CityBlueprint
+        ref={blueprintRef}
+        viewBox={VIEWBOX}
+        theme={themeAttrs(theme).mapTheme}
+        initialView={view}
+      />
+
+      {/* Static base layer: neon halos and line casings, under the animated lines. */}
       <svg
-        ref={svgRef}
-        className="map-stage relative h-full w-full cursor-grab touch-none select-none active:cursor-grabbing"
+        className="map-stage-base"
+        aria-hidden="true"
+        focusable="false"
         viewBox={`${VIEWBOX.x} ${VIEWBOX.y} ${VIEWBOX.w} ${VIEWBOX.h}`}
         preserveAspectRatio="xMidYMid meet"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        onClick={onMapClick}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none" }}
+      >
+        <g
+          ref={baseContentRef}
+          suppressHydrationWarning
+          transform={`translate(${view.x * view.k} ${view.y * view.k}) scale(${view.k})`}
+        >
+          {/* Luminous Neon Radiance for Colored Metro Lines */}
+          <g className="map-network-radiance" aria-hidden="true" pointerEvents="none" fill="none">
+            {allLines
+              .filter((line) => COLORED_LINE_IDS.has(line.id))
+              .map((line) => (
+                <g
+                  key={`radiance-${line.id}`}
+                  stroke={`var(--${line.color})`}
+                  opacity={isDimmed([line.id]) ? 0.04 : 1}
+                >
+                  <path className="map-radiance-outer" d={line.pathD} />
+                  <path className="map-radiance-mid" d={line.pathD} />
+                  <path className="map-radiance-inner" d={line.pathD} />
+                </g>
+              ))}
+          </g>
+
+
+        </g>
+      </svg>
+
+      {/* Animated layer (flowing line gradients, glass core, trains, packets). Kept in its
+          own SVG so its per-frame repaints never re-rasterize the static map above
+          (stations, labels, hit areas), which only repaints when the camera moves. */}
+      <svg
+        className="map-stage-flow"
+        aria-hidden="true"
+        focusable="false"
+        viewBox={`${VIEWBOX.x} ${VIEWBOX.y} ${VIEWBOX.w} ${VIEWBOX.h}`}
+        preserveAspectRatio="xMidYMid meet"
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none" }}
       >
         <defs>
           {allLines
@@ -916,43 +1460,38 @@ export function TransitMap() {
                 id={`grad-${line.id}`}
                 x1="0%"
                 y1="0%"
-                x2="100%"
-                y2="100%"
+                x2="35%"
+                y2="35%"
+                spreadMethod="reflect"
               >
+                <stop offset="0%" stopColor={`var(--${line.color})`} />
                 <stop
-                  offset="0%"
-                  stopColor={`color-mix(in srgb, var(--${line.color}) 72%, white)`}
+                  offset="45%"
+                  stopColor={`color-mix(in srgb, var(--${line.color}) 45%, white)`}
                 />
                 <stop offset="55%" stopColor={`var(--${line.color})`} />
                 <stop
                   offset="100%"
-                  stopColor={`color-mix(in srgb, var(--${line.color}) 82%, #040608)`}
+                  stopColor={`color-mix(in srgb, var(--${line.color}) 78%, #040608)`}
+                />
+                {/* Light flowing along the line: shift by one reflect period (2 x 35%) so it loops seamlessly. */}
+                <animateTransform
+                  attributeName="gradientTransform"
+                  type="translate"
+                  from="0 0"
+                  to="0.7 0.7"
+                  dur="5s"
+                  repeatCount="indefinite"
                 />
               </linearGradient>
             ))}
         </defs>
 
         <g
-          ref={mapContentRef}
+          ref={flowContentRef}
+          suppressHydrationWarning
           transform={`translate(${view.x * view.k} ${view.y * view.k}) scale(${view.k})`}
         >
-          {/* Line casings — dark halo so crossings read cleanly */}
-          <g aria-label="line-casings">
-            {allLines.map((line) => (
-              <path
-                key={`casing-${line.id}`}
-                className="map-focusable"
-                d={line.pathD}
-                fill="none"
-                stroke="var(--map-bg)"
-                strokeWidth={lineWidth(line) + (line.noPage ? 1.6 : 2.4)}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity={isDimmed([line.id]) ? FOCUS_DIM : 1}
-              />
-            ))}
-          </g>
-
           {/* Lines */}
           <g aria-label="lines">
             {allLines.map((line) => {
@@ -964,6 +1503,18 @@ export function TransitMap() {
                 strokeLinejoin: "round" as const,
               };
               const focused = hoveredLineId === line.id;
+              // Each line draws its own dark casing right under itself, so a line
+              // crossing over another visibly cuts it (classic metro-map crossing).
+              const casing = (
+                <path
+                  d={line.pathD}
+                  fill="none"
+                  stroke="var(--map-bg)"
+                  strokeWidth={w + (line.noPage ? 1.6 : 2.4)}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              );
               if (line.kind === "brt" || line.kind === "light-rail") {
                 return (
                   <g
@@ -971,6 +1522,7 @@ export function TransitMap() {
                     className="map-focusable"
                     opacity={isDimmed([line.id]) ? FOCUS_DIM : 1}
                   >
+                    {casing}
                     <path
                       {...common}
                       className={line.noPage ? "support-route-line" : "active-route-line"}
@@ -993,8 +1545,9 @@ export function TransitMap() {
                 );
               }
               return (
+                <g key={`line-${line.id}`} opacity={isDimmed([line.id]) ? FOCUS_DIM : 1}>
+                {casing}
                 <path
-                  key={`line-${line.id}`}
                   {...common}
                   className={`${line.noPage ? "support-route-line" : "active-route-line"} map-focusable`}
                   stroke={
@@ -1005,12 +1558,53 @@ export function TransitMap() {
                   strokeWidth={w + (focused ? 1.4 : 0)}
                   strokeDasharray={lineDash(line)}
                   strokeOpacity={line.kind === "commuter" ? 0.58 : 1}
-                  opacity={isDimmed([line.id]) ? FOCUS_DIM : 1}
                 />
+                </g>
               );
             })}
           </g>
 
+          {/* Glass tube highlight: thin specular core along each metro line. */}
+          <g className="map-line-gloss" aria-hidden="true" pointerEvents="none" fill="none">
+            {allLines
+              .filter((line) => line.kind === "metro")
+              .map((line) => (
+                <path
+                  key={`gloss-${line.id}`}
+                  d={line.pathD}
+                  strokeWidth={Math.max(0.6, lineWidth(line) * 0.24)}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray={lineDash(line)}
+                  opacity={isDimmed([line.id]) ? 0 : 1}
+                />
+              ))}
+          </g>
+
+          <MovingTrains lines={allLines} colorForLine={lineVisualColor} />
+        </g>
+      </svg>
+
+      <svg
+        ref={svgRef}
+        aria-hidden="true"
+        focusable="false"
+        className="map-stage relative z-[2] h-full w-full cursor-grab touch-none select-none active:cursor-grabbing"
+        viewBox={`${VIEWBOX.x} ${VIEWBOX.y} ${VIEWBOX.w} ${VIEWBOX.h}`}
+        preserveAspectRatio="xMidYMid meet"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onClick={onMapClick}
+      >
+
+        <g
+          ref={mapContentRef}
+          // Client may restore a different view from sessionStorage; applied on mount.
+          suppressHydrationWarning
+          transform={`translate(${view.x * view.k} ${view.y * view.k}) scale(${view.k})`}
+        >
           <g aria-label="line-hit-areas">
             {allLines.map((line) => {
               const slug = stationSlugForLine(line.id);
@@ -1041,13 +1635,21 @@ export function TransitMap() {
                   }
                   className="map-line-hit-area"
                   style={{ cursor: "pointer" }}
-                  onMouseEnter={() => {
+                  onMouseEnter={(event) => {
                     setHoveredLineId(line.id);
                     warmStationRoute(slug);
-                    const u = splatUrlForLine(line.id);
-                    if (u) warmSplat(u);
+                    if (isPanning.current || !getStationContent(line.id, language)) return;
+                    const { clientX: x, clientY: y } = event;
+                    showPreview({ lineId: line.id, rect: { left: x, right: x, top: y, bottom: y }, follow: true });
                   }}
-                  onMouseLeave={() => setHoveredLineId(null)}
+                  onMouseMove={(event) => {
+                    if (isPanning.current) return;
+                    movePreview(event.clientX, event.clientY);
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredLineId(null);
+                    hidePreview(0);
+                  }}
                   onFocus={() => {
                     setHoveredLineId(line.id);
                     warmStationRoute(slug);
@@ -1074,12 +1676,13 @@ export function TransitMap() {
               const line = lineById[station.lineId];
               if (!line) return null;
               return (
-                <circle
+                <rect
                   key={station.id}
                   className="sub-station-marker map-focusable"
-                  cx={station.x}
-                  cy={station.y}
-                  r={1.75}
+                  x={station.x - 1.75}
+                  y={station.y - 1.75}
+                  width={3.5}
+                  height={3.5}
                   fill="var(--map-station-fill)"
                   stroke={`var(--${lineVisualColor(line)})`}
                   strokeWidth={0.8}
@@ -1089,8 +1692,6 @@ export function TransitMap() {
               );
             })}
           </g>
-
-          <MovingTrains lines={allLines} colorForLine={lineVisualColor} />
 
           <g
             aria-label="line-labels"
@@ -1178,7 +1779,6 @@ export function TransitMap() {
                       y={badgeY}
                       width={badge}
                       height={badge}
-                      rx={2.5}
                       fill={badgeAppearance.fill}
                       stroke={badgeAppearance.stroke}
                       strokeWidth={1}
@@ -1229,7 +1829,6 @@ export function TransitMap() {
                     y={-badge / 2}
                     width={badge}
                     height={badge}
-                    rx={2.5}
                     fill={badgeAppearance.fill}
                     stroke={badgeAppearance.stroke}
                     strokeWidth={1}
@@ -1293,6 +1892,13 @@ export function TransitMap() {
                         });
                       }
                     },
+                    onPointerEnter: (event: React.PointerEvent<SVGGElement>) => {
+                      const lineId = (s.lines ?? []).find((id) =>
+                        getStationContent(id, language),
+                      );
+                      if (lineId) showLinePreview(lineId, event.currentTarget);
+                    },
+                    onPointerLeave: () => setPreview(null),
                     style: { cursor: "pointer" as const },
                   }
                 : { style: { pointerEvents: "none" as const } };
@@ -1318,18 +1924,18 @@ export function TransitMap() {
                       y={s.y - hub.thick / 2}
                       width={hub.len}
                       height={hub.thick}
-                      rx={hub.thick / 2}
                       fill="var(--map-station-fill)"
                       stroke="var(--map-ink)"
                       strokeWidth={2}
                       vectorEffect="non-scaling-stroke"
                     />
                     {cols.map((c, i) => (
-                      <circle
+                      <rect
                         key={i}
-                        cx={s.x + (dots[i]?.along ?? 0)}
-                        cy={s.y}
-                        r={2.5}
+                        x={s.x + (dots[i]?.along ?? 0) - 2.5}
+                        y={s.y - 2.5}
+                        width={5}
+                        height={5}
                         fill={`var(--${c})`}
                       />
                     ))}
@@ -1338,16 +1944,17 @@ export function TransitMap() {
               } else if (kind === "major") {
                 marker = (
                   <g>
-                    <circle
-                      cx={s.x}
-                      cy={s.y}
-                      r={6.4}
+                    <rect
+                      x={s.x - 6.4}
+                      y={s.y - 6.4}
+                      width={12.8}
+                      height={12.8}
                       fill="var(--map-station-fill)"
                       stroke="var(--map-ink)"
                       strokeWidth={2}
                       vectorEffect="non-scaling-stroke"
                     />
-                    <circle cx={s.x} cy={s.y} r={2.2} fill="var(--map-ink)" />
+                    <rect x={s.x - 2.2} y={s.y - 2.2} width={4.4} height={4.4} fill="var(--map-ink)" />
                   </g>
                 );
               } else if (markerLine?.noPage) {
@@ -1374,20 +1981,21 @@ export function TransitMap() {
                     />
                   );
                 } else if (markerLine.kind === "cable-car") {
-                  marker = <circle cx={s.x} cy={s.y} r={1.9} fill={color} />;
+                  marker = <rect x={s.x - 1.9} y={s.y - 1.9} width={3.8} height={3.8} fill={color} />;
                 } else if (markerLine.kind === "commuter") {
                   marker = (
                     <g>
-                      <circle cx={s.x} cy={s.y} r={2.8} fill={color} />
-                      <circle cx={s.x} cy={s.y} r={1} fill="var(--map-bg)" />
+                      <rect x={s.x - 2.8} y={s.y - 2.8} width={5.6} height={5.6} fill={color} />
+                      <rect x={s.x - 1} y={s.y - 1} width={2} height={2} fill="var(--map-bg)" />
                     </g>
                   );
                 } else {
                   marker = (
-                    <circle
-                      cx={s.x}
-                      cy={s.y}
-                      r={2.4}
+                    <rect
+                      x={s.x - 2.4}
+                      y={s.y - 2.4}
+                      width={4.8}
+                      height={4.8}
                       fill="var(--map-bg)"
                       stroke={color}
                       strokeWidth={0.8}
@@ -1397,10 +2005,11 @@ export function TransitMap() {
                 }
               } else {
                 marker = (
-                  <circle
-                    cx={s.x}
-                    cy={s.y}
-                    r={2.3}
+                  <rect
+                    x={s.x - 2.3}
+                    y={s.y - 2.3}
+                    width={4.6}
+                    height={4.6}
                     fill="var(--map-station-fill)"
                     stroke="var(--map-dot-ring)"
                     strokeWidth={2}
@@ -1418,13 +2027,27 @@ export function TransitMap() {
                 >
                   {marker}
                   {interactive && (
-                    <circle
-                      cx={s.x}
-                      cy={s.y}
-                      r={kind === "interchange" || kind === "terminal" ? 16 : 10}
-                      fill="transparent"
-                      style={{ pointerEvents: "all" }}
-                    />
+                    <>
+                      <rect
+                        className="map-station-pulse"
+                        x={s.x - (kind === "interchange" || kind === "terminal" ? 14 : 9)}
+                        y={s.y - (kind === "interchange" || kind === "terminal" ? 14 : 9)}
+                        width={(kind === "interchange" || kind === "terminal" ? 14 : 9) * 2}
+                        height={(kind === "interchange" || kind === "terminal" ? 14 : 9) * 2}
+                        fill="none"
+                        stroke={transitionColor}
+                        strokeWidth={1.2}
+                        vectorEffect="non-scaling-stroke"
+                      />
+                      <rect
+                        x={s.x - (kind === "interchange" || kind === "terminal" ? 16 : 10)}
+                        y={s.y - (kind === "interchange" || kind === "terminal" ? 16 : 10)}
+                        width={(kind === "interchange" || kind === "terminal" ? 16 : 10) * 2}
+                        height={(kind === "interchange" || kind === "terminal" ? 16 : 10) * 2}
+                        fill="transparent"
+                        style={{ pointerEvents: "all" }}
+                      />
+                    </>
                   )}
                 </g>
               );
@@ -1499,7 +2122,6 @@ export function TransitMap() {
                           <rect
                             width={INTERCHANGE_BADGE_SIZE}
                             height={INTERCHANGE_BADGE_SIZE}
-                            rx={2.2}
                             fill={lineBadgeFill(line)}
                             stroke="var(--map-bg)"
                             strokeWidth={0.9}
@@ -1589,9 +2211,14 @@ export function TransitMap() {
       <div className="map-film pointer-events-none" aria-hidden="true" />
 
       <nav
-        aria-label="Linhas ativas"
+        id="projects"
+        tabIndex={-1}
+        aria-label={language === "en" ? "Portfolio projects" : "Projetos do portfólio"}
         className="map-legend pointer-events-auto flex flex-col items-start gap-[3px]"
-        onMouseLeave={() => setHoveredLineId(null)}
+        onMouseLeave={() => {
+          setHoveredLineId(null);
+          hidePreview(160);
+        }}
       >
         <div className="map-menu-controls">
           <div
@@ -1646,53 +2273,47 @@ export function TransitMap() {
           >
             <BookOpen className="h-4 w-4" aria-hidden="true" />
           </Link>
-          <button
-            type="button"
-            className={`map-mode-toggle${viewMode === "3d" ? " is-active" : ""}`}
-            onClick={() => setViewMode(viewMode === "3d" ? "lite" : "3d")}
-            aria-pressed={viewMode === "3d"}
-            data-tip={
-              language === "en"
-                ? "3D mode loads 3D backgrounds on the stations! but it can be quite heavy."
-                : "o modo 3D carrega fundos 3D nas estações! mas pode ser bem pesado."
-            }
-            aria-label={
-              (viewMode === "3d"
-                ? language === "en"
-                  ? "Back to lite mode. "
-                  : "Voltar ao modo leve. "
-                : language === "en"
-                  ? "Turn on 3D mode. "
-                  : "Ativar modo 3D. ") +
-              (language === "en"
-                ? "3D mode loads 3D backgrounds on the stations but it can be quite heavy."
-                : "O modo 3D carrega fundos 3D nas estações mas pode ser bem pesado.")
-            }
-          >
-            <Boxes className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>3D</span>
-          </button>
         </div>
         <ul className="map-line-list">
           {activeLines.map((line) => {
             const slug = stationSlugForLine(line.id);
             const focused = hoveredLineId === line.id;
             const dimmed = hoveredLineId !== null && !focused;
+            const subtitle = LINE_SUBTITLES[line.id]?.[language];
+            // Screen-reader name: number, title and client/company (the visual
+            // card is mouse-only, so fold that info into the button's label).
+            const previewData = getLinePreview(line.id, language);
+            const accessibleName = [
+              `${lineNumber(line.shortName)}.`,
+              lineCopy[language][line.id] ?? line.name,
+              previewData?.client,
+              previewData?.company ?? previewData?.role,
+            ]
+              .filter(Boolean)
+              .join(" ");
             return (
-              <li key={line.id}>
+              <li key={line.id} className="w-full">
                 <button
                   type="button"
-                  onMouseEnter={() => {
+                  aria-label={accessibleName}
+                  onMouseEnter={(event) => {
                     setHoveredLineId(line.id);
                     warmStationRoute(slug);
-                    const u = splatUrlForLine(line.id);
-                    if (u) warmSplat(u);
+                    showLinePreview(line.id, event.currentTarget);
                   }}
-                  onFocus={() => {
+                  onMouseLeave={() => {
+                    setHoveredLineId(null);
+                    hidePreview(160);
+                  }}
+                  onFocus={(event) => {
                     setHoveredLineId(line.id);
                     warmStationRoute(slug);
+                    showLinePreview(line.id, event.currentTarget);
                   }}
-                  onBlur={() => setHoveredLineId(null)}
+                  onBlur={() => {
+                    setHoveredLineId(null);
+                    hidePreview(160);
+                  }}
                   onClick={(event) => {
                     if (isContactLine(line.id)) {
                       setContactOpen(true);
@@ -1714,22 +2335,36 @@ export function TransitMap() {
                   }
                 >
                   <span
-                    className={`map-line-number${COLORED_LINE_IDS.has(line.id) ? "" : " is-grey"}`}
+                    className={`map-line-badge${COLORED_LINE_IDS.has(line.id) ? "" : " is-grey"}`}
                     style={{ background: `var(--${lineVisualColor(line)})` }}
                   >
                     {lineNumber(line.shortName)}
                   </span>
-                  <span className="map-line-name">{lineCopy[language][line.id] ?? line.name}</span>
-                  <span
-                    className="map-line-arrow"
-                    style={{
-                      transform: `rotate(${snappedArrowAngle(lineArrowAngle[line.id] ?? 0)}deg)`,
-                    }}
+                  <div className="map-line-text">
+                    <span className="map-line-title">{lineCopy[language][line.id] ?? line.name}</span>
+                    {WAVEFORM_SUBTITLE_LINE_IDS.has(line.id) ? (
+                      <span className="map-line-subtitle map-line-subtitle--wave">
+                        <MenuWaveform />
+                      </span>
+                    ) : subtitle ? (
+                      <span className="map-line-subtitle">{subtitle}</span>
+                    ) : null}
+                  </div>
+                  <svg
+                    className="map-line-arrow-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                    strokeLinecap="butt"
+                    strokeLinejoin="miter"
+                    aria-hidden="true"
                   >
-                    <svg viewBox="0 0 48 48" aria-hidden="true">
-                      <path d="M7 24H39M28 13L39 24L28 35" />
-                    </svg>
-                  </span>
+                    {/* NYC-style pointy arrow, aimed at the line's own direction. */}
+                    <g transform={`rotate(${Math.round((lineArrowAngle[line.id] ?? 0) / 45) * 45} 12 12)`}>
+                      <path d="M4 12h15M13 6l6 6-6 6" />
+                    </g>
+                  </svg>
                 </button>
               </li>
             );
@@ -1743,6 +2378,30 @@ export function TransitMap() {
         language={language}
         accent={resolveMapColor(lineVisualColor(lineById["L8"] ?? activeLines[0]))}
       />
+
+      <HomeDisc lang={language} />
+      <PartyMode lang={language} />
+
+      {preview && (
+        <MapPreviewCard
+          preview={preview}
+          lang={language}
+          leaving={previewLeaving}
+          cardRef={previewCardRef}
+          onPointerEnter={() => {
+            keepPreview();
+            setHoveredLineId(preview.lineId);
+          }}
+          onPointerLeave={() => {
+            setHoveredLineId(null);
+            hidePreview(80);
+          }}
+          onOpen={(lineId, x, y) => {
+            const line = lineById[lineId];
+            if (line) openLineFromMap(line, x, y);
+          }}
+        />
+      )}
     </div>
   );
 }
