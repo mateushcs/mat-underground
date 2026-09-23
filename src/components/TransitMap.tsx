@@ -183,8 +183,9 @@ const CAMERA_RESPONSE_ZOOM = 11;
 // Wheel zoom sensitivity per wheel-delta pixel (mouse) and per trackpad pinch delta.
 const WHEEL_ZOOM_SPEED = 0.0024;
 const PINCH_WHEEL_ZOOM_SPEED = 0.012;
-const DESKTOP_INITIAL_VIEW: ViewState = { x: 0, y: 0, k: 2.35 };
-const MOBILE_INITIAL_VIEW: ViewState = { x: 0, y: 0, k: 3.55 };
+// Start fully zoomed out (MIN_ZOOM) so the whole map is visible.
+const DESKTOP_INITIAL_VIEW: ViewState = { x: 0, y: 0, k: MIN_ZOOM };
+const MOBILE_INITIAL_VIEW: ViewState = { x: 0, y: 0, k: MIN_ZOOM };
 const MAP_VIEW_STORAGE_KEY = "mats-map-view";
 // Opacity for everything that is NOT the focused line while a menu row is hovered.
 const FOCUS_DIM = 0.12;
