@@ -23,6 +23,7 @@ export const caseBriefs: Record<string, Record<ContentLang, { description: strin
 const about: Record<ContentLang, string[]> = {
   pt: [
     "Oiê! Hi! 你好！Eu sou o Mateus, mas pode me chamar de Mat. Eu trabalho com design e gestão de produto aqui de Fortalcity, e do resto do mundo também quando dá pra ser remoto. Já passei por projetos em áreas como SaaS B2B, agritech, healthtech e inovação aberta, e cada área me ensinou uma coisa diferente. Ah, e quando sobra um tempo, eu também produzo música.",
+    "[[links:mailto:mathcs.work@gmail.com|mathcs.work@gmail.com;;https://www.linkedin.com/in/mats-corner/|LinkedIn]]",
     "Eu comecei no mundo do design ainda adolescente, fazendo sites e blogs pra mim e pras pessoas das comunidades de que eu participava. Foi minha primeira experiência trabalhando com ‘cliente’, diga-se de passagem. Um tempo depois, fiz minha graduação na Universidade Federal do Ceará, e atualmente curso um MBA em Design de Interação na Anhanguera.",
     "Já faz mais de cinco anos que eu desenho produto digital de ponta a ponta, do discovery ao handoff pros devs. Gosto de entender o que as pessoas precisam, o que o negócio quer e o que dá pra construir, e ir ajustando essas coisas junto com o time. De bom humor, sempre que possível.",
     "Nesse tempo, construí um design system do zero, com foco em tokenização e diretrizes de uso, e conduzi pesquisas tanto pra orientar a estratégia quanto pra melhorar a usabilidade de produtos SaaS B2B. Como PM, também cuidei de priorização, roadmap, acompanhamento de métricas e alinhamento com liderança e marketing.",
@@ -34,6 +35,7 @@ const about: Record<ContentLang, string[]> = {
   ],
   en: [
     "Oiê! Hi! 你好! I'm Mateus, but you can call me Mat. I work in product design and management from Fortaleza, and anywhere else when remote work makes it possible. I've worked on projects in areas such as B2B SaaS, agritech, healthtech and open innovation, and each taught me something different. Oh, and when I have some spare time, I also make music.",
+    "[[links:mailto:mathcs.work@gmail.com|mathcs.work@gmail.com;;https://www.linkedin.com/in/mats-corner/|LinkedIn]]",
     "I started designing as a teenager, making websites and blogs for myself and people in the communities I belonged to. My first experience working with ‘clients’, actually. Later I graduated from the Federal University of Ceará, and I'm currently taking an MBA in Interaction Design at Anhanguera.",
     "I've been designing digital products end to end for over five years, from discovery to developer handoff. I like understanding what people need, what the business wants and what we can build, then working through it with the team. Preferably in a good mood.",
     "Along the way, I built a design system from scratch with tokens and usage guidelines, and led research for strategy and usability improvements in B2B SaaS. As a PM, I also worked on prioritisation, roadmaps, metrics and alignment with leadership and marketing.",

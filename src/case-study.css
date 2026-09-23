@@ -41,6 +41,7 @@
 .case-placeholder-marker { color:var(--station-accent); }
 .case-links { display:flex; flex-wrap:wrap; gap:1rem; margin-top:2rem; padding-top:2rem; border-top:1px solid var(--case-border); }
 .case-links .station-link { display:inline-flex; align-items:center; gap:.5rem; color:var(--case-text); font-size:.85rem; }
+.case-links--inline { margin-top:0; padding-top:0; border-top:0; gap:.6rem 1.4rem; }
 .case-comparison { display:grid; grid-template-columns:1fr 1fr; gap:2rem; }
 .case-comparison > div + div { border-left:1px solid var(--case-border); padding-left:2rem; }
 .case-comparison ul { padding-left:1.1rem; line-height:1.9; font-size:.95rem; list-style:disc; }

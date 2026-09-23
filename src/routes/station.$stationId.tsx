@@ -315,6 +315,26 @@ function renderCaseItem(
       </figure>
     );
   }
+  // [[links:url|label;;url|label]] renders an inline row of contact links.
+  if (item.startsWith("[[links:")) {
+    const links = item.slice(8, -2).split(";;").map((entry) => entry.split("|"));
+    return (
+      <div key={key} className="case-links case-links--inline">
+        {links.map(([url, label]) => (
+          <a
+            key={url}
+            href={url}
+            target={url.startsWith("http") ? "_blank" : undefined}
+            rel={url.startsWith("http") ? "noopener noreferrer" : undefined}
+            className="station-link"
+          >
+            {label}
+            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </a>
+        ))}
+      </div>
+    );
+  }
   if (item.startsWith("[[img:")) {
     const [src, alt] = item.slice(6, -2).split("|");
     return (
