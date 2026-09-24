@@ -27,6 +27,7 @@ export const tourHouseCase = {
     "## Resultados",
     "Depois da implementação do fluxo de aprovação pelo WhatsApp, as aprovações ficaram 60 vezes mais rápidas.",
     "Esse número responde direto àquela espera: levando a aprovação pro WhatsApp, a decisão passou a acontecer onde o aprovador já estava.",
+    "Além disso, a consulta de disponibilidade de hotéis ficou 75% mais rápida, 60% das transações passaram a ser feitas com VCN (cartão virtual) e os dados ganharam visibilidade com o dashboard e os relatórios.",
     "## Comentários",
     "Nesse projeto, precisei entender bem as regras de cada empresa e a rotina dos três públicos. Isso ajudou a decidir o que mostrar em cada etapa e onde fazia sentido simplificar."
   ],
@@ -57,6 +58,7 @@ export const tourHouseCase = {
     "## Results",
     "After the WhatsApp approval flow was implemented, approvals became 60 times faster.",
     "That number answers the wait directly: by moving approval to WhatsApp, the decision happened where the approver already was.",
+    "On top of that, hotel availability searches became 75% faster, 60% of transactions moved to VCN (virtual cards), and data gained visibility through the dashboard and reports.",
     "## Final comments",
     "Understanding company rules and the routines of all three audiences helped me decide what to show at each step and where to simplify."
   ]

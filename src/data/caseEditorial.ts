@@ -15,8 +15,8 @@ export const caseBriefs: Record<string, Record<ContentLang, { description: strin
     en: { description: "A remote physiotherapy project, with separate apps for patients and physiotherapists to follow treatment.", contribution: "I handled research, flows, prototypes, testing and visual identity in a three-person team.", results: "A high-fidelity prototype as the final deliverable, with research-led changes to the video player, and approval by Unimed." },
   },
   L9: {
-    pt: { description: "Uma plataforma de viagens corporativas pra buscar, reservar e aprovar viagens, respeitando as regras de cada empresa.", contribution: "Desenhei os fluxos e as interfaces do discovery ao handoff, em parceria com o PM, os stakeholders e os devs.", results: "Aprovações 60 vezes mais rápidas após a implementação do fluxo de aprovação pelo WhatsApp." },
-    en: { description: "A corporate travel platform for searching, booking and approving trips within each company's rules.", contribution: "I designed flows and interfaces from discovery to handoff, working with the PM, stakeholders and developers.", results: "Approvals became 60 times faster after the WhatsApp approval flow was implemented." },
+    pt: { description: "Uma plataforma de viagens corporativas pra buscar, reservar e aprovar viagens, respeitando as regras de cada empresa.", contribution: "Desenhei os fluxos e as interfaces do discovery ao handoff, em parceria com o PM, os stakeholders e os devs.", results: "Aprovações 60 vezes mais rápidas com o fluxo pelo WhatsApp, +75% de performance na disponibilidade de hotéis, 60% das transações com VCN e mais visibilidade de dados com dashboard e relatórios." },
+    en: { description: "A corporate travel platform for searching, booking and approving trips within each company's rules.", contribution: "I designed flows and interfaces from discovery to handoff, working with the PM, stakeholders and developers.", results: "Approvals 60 times faster with the WhatsApp flow, 75% better hotel availability performance, 60% of transactions on VCN and more data visibility through dashboards and reports." },
   },
 };
 

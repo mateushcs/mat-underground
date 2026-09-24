@@ -1,4 +1,4 @@
-import { Award, BellRing, CirclePlay, Clock, FlaskConical, LayoutDashboard, Smile, Tags, Timer, UserPlus, Wrench, Zap, type LucideIcon } from "lucide-react";
+import { Award, BellRing, CirclePlay, Clock, CreditCard, FlaskConical, Gauge, LayoutDashboard, Smile, Tags, Timer, UserPlus, Wrench, Zap, type LucideIcon } from "lucide-react";
 
 const results: Record<string, Record<"pt" | "en", [string, string][]>> = {
   L2: {
@@ -14,8 +14,8 @@ const results: Record<string, Record<"pt" | "en", [string, string][]>> = {
     en: [["prototype", "in high fidelity as the final deliverable"], ["revised player", "based on difficulties observed during testing"], ["approved", "by Unimed"]],
   },
   L9: {
-    pt: [["60×", "mais velocidade nas aprovações após a implementação do fluxo pelo WhatsApp"]],
-    en: [["60×", "faster approvals after the WhatsApp approval flow was implemented"]],
+    pt: [["60×", "mais velocidade nas aprovações após a implementação do fluxo pelo WhatsApp"], ["+75%", "de performance na consulta de disponibilidade de hotéis"], ["60%", "das transações feitas com VCN (cartão virtual)"], ["+visibilidade", "de dados com dashboard e relatórios"]],
+    en: [["60×", "faster approvals after the WhatsApp approval flow was implemented"], ["+75%", "performance in hotel availability searches"], ["60%", "of transactions made with VCN (virtual cards)"], ["+visibility", "of data through dashboards and reports"]],
   },
 };
 
@@ -24,7 +24,7 @@ const icons: Record<string, LucideIcon[]> = {
   L2: [Timer, Wrench, BellRing, Smile],
   L3: [Timer, UserPlus, Tags, LayoutDashboard, Clock],
   L4: [FlaskConical, CirclePlay, Award],
-  L9: [Zap],
+  L9: [Zap, Gauge, CreditCard, LayoutDashboard],
 };
 
 export function CaseResults({ lineId, lang }: { lineId: string; lang: "pt" | "en" }) {
